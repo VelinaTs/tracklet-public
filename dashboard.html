@@ -294,9 +294,9 @@
   async function loadUserData() {
     try {
       log('🔄 Fetching user from API...');
-      log('API endpoint', `${API_URL}/api/auth/me`);
+      log('API endpoint', `${API_URL}/auth/me`);
       
-      const response = await fetch(`${API_URL}/api/auth/me`, {
+      const response = await fetch(`${API_URL}/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
