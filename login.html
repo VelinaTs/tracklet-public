@@ -633,8 +633,8 @@
         const data = await response.json().catch(() => ({}));
 
         if (response.ok) {
-          // Cookie is set by backend; just navigate
-          window.location.href = 'dashboard.html';
+          // Cookie is set by backend; navigate to absolute project path
+          window.location.href = `${window.location.origin}/tracklet-public/dashboard.html`;
         } else {
           showError(formError, data.message || 'Login failed. Please try again.');
         }

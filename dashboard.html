@@ -291,7 +291,7 @@
 
       if (response.ok) {
         const data = await response.json();
-        const user = data.user;
+        const user = data.user || data;
         
         log('✅ User authenticated', user.email);
         
@@ -319,7 +319,7 @@
         // Not authenticated, redirect to login
         log('➡️ Redirecting to login in 2s...');
         setTimeout(() => {
-          window.location.href = 'login.html';
+          window.location.href = `${window.location.origin}/tracklet-public/login.html`;
         }, 2000);
       }
     } catch (error) {
@@ -331,7 +331,7 @@
       // Network/CORS error - redirect to login
       log('➡️ Redirecting to login in 3s...');
       setTimeout(() => {
-        window.location.href = 'login.html';
+        window.location.href = `${window.location.origin}/tracklet-public/login.html`;
       }, 3000);
     }
   }
@@ -344,7 +344,7 @@
       } catch (e) {
         // ignore errors on logout
       }
-      window.location.href = 'login.html';
+      window.location.href = `${window.location.origin}/tracklet-public/login.html`;
     });
   }
 
