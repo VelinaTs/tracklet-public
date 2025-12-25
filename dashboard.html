@@ -212,6 +212,7 @@
 <body>
   <div class="debug-panel" id="debugPanel"></div>
   <div class="loading" id="loading">Loading...</div>
+  <base href="/tracklet-public/">
   
   <nav style="display: none;" id="nav">
     <div class="nav-container">
@@ -248,8 +249,9 @@
     </div>
   </div>
 
+  <script src="auth.js"></script>
   <script>
-  const API_URL = 'https://price-monitor-backend-production-e326.up.railway.app';
+  const API_URL = window.Auth.API_URL;
   
   // Debug logger
   function log(msg, data = null) {
@@ -269,26 +271,8 @@
   log('Pathname', window.location.pathname);
   log('Search params', window.location.search);
   
-  // Get token from URL or localStorage
-  const urlParams = new URLSearchParams(window.location.search);
-  const urlToken = urlParams.get('token');
-  let token = urlToken || localStorage.getItem('token');
-
-  log('URL token present', !!urlToken);
-  log('LocalStorage token present', !!localStorage.getItem('token'));
-  log('Using token', token ? token.substring(0, 20) + '...' : 'NONE');
-
-  // If no token at all, redirect to login immediately
-  if (!token) {
-    log('❌ NO TOKEN - redirecting to login');
-    setTimeout(() => {
-      window.location.href = 'login.html';
-    }, 2000);
-  } else {
-    log('✅ Token found - validating...');
-    // Have token - validate it first before cleaning URL
-    loadUserData();
-  }
+  // Cookie-based auth: try to load user; redirect on 401
+  loadUserData();
 
   // Fetch user data
   async function loadUserData() {
@@ -296,11 +280,7 @@
       log('🔄 Fetching user from API...');
       log('API endpoint', `${API_URL}/auth/me`);
       
-      const response = await fetch(`${API_URL}/auth/me`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await window.Auth.getProfile();
 
       log('Response status', response.status);
       log('Response OK', response.ok);
@@ -315,11 +295,8 @@
         
         log('✅ User authenticated', user.email);
         
-        // Token is valid - NOW save it and clean URL
-        if (urlToken) {
-          localStorage.setItem('token', urlToken);
-          log('💾 Token saved to localStorage');
-          // Clean URL without page reload
+        // Authenticated via cookie; if query params existed, clean URL
+        if (window.location.search) {
           window.history.replaceState({}, document.title, 'dashboard.html');
           log('🧹 URL cleaned');
         }
@@ -339,9 +316,7 @@
         const errorData = await response.json().catch(() => ({}));
         log('Error response', errorData);
         
-        // Invalid token, redirect to login
-        localStorage.removeItem('token');
-        log('🗑️ Token removed from localStorage');
+        // Not authenticated, redirect to login
         log('➡️ Redirecting to login in 2s...');
         setTimeout(() => {
           window.location.href = 'login.html';
@@ -354,8 +329,6 @@
       log('Error stack', error.stack);
       
       // Network/CORS error - redirect to login
-      localStorage.removeItem('token');
-      log('🗑️ Token removed due to error');
       log('➡️ Redirecting to login in 3s...');
       setTimeout(() => {
         window.location.href = 'login.html';
@@ -365,8 +338,12 @@
 
   // Logout
   if (document.getElementById('logoutBtn')) {
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-      localStorage.removeItem('token');
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      try {
+        await window.Auth.logout();
+      } catch (e) {
+        // ignore errors on logout
+      }
       window.location.href = 'login.html';
     });
   }
