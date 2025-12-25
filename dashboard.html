@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dashboard – Tracklet</title>
+  <base href="/tracklet-public/">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -212,7 +213,6 @@
 <body>
   <div class="debug-panel" id="debugPanel"></div>
   <div class="loading" id="loading">Loading...</div>
-  <base href="/tracklet-public/">
   
   <nav style="display: none;" id="nav">
     <div class="nav-container">
@@ -297,7 +297,7 @@
         
         // Authenticated via cookie; if query params existed, clean URL
         if (window.location.search) {
-          window.history.replaceState({}, document.title, 'dashboard.html');
+          window.history.replaceState({}, document.title, window.location.pathname);
           log('🧹 URL cleaned');
         }
         
