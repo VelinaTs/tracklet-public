@@ -546,6 +546,12 @@
   <script src="auth.js"></script>
   <script>
     const API_URL = window.Auth.API_URL;
+    const PROJECT_BASE = '/tracklet-public';
+    // Path guard: ensure we stay under the project site path
+    if (!window.location.pathname.startsWith(PROJECT_BASE)) {
+      const page = window.location.pathname.split('/').pop() || 'login.html';
+      window.location.replace(`${window.location.origin}${PROJECT_BASE}/${page}`);
+    }
     // ==================== THEME TOGGLE ====================
     const themeToggle = document.getElementById('themeToggle');
     const html = document.documentElement;
