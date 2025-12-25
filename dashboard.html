@@ -282,7 +282,7 @@
   if (!token) {
     log('❌ NO TOKEN - redirecting to login');
     setTimeout(() => {
-      window.location.href = '/tracklet-public/login.html';
+      window.location.href = 'login.html';
     }, 2000);
   } else {
     log('✅ Token found - validating...');
@@ -320,7 +320,7 @@
           localStorage.setItem('token', urlToken);
           log('💾 Token saved to localStorage');
           // Clean URL without page reload
-          window.history.replaceState({}, document.title, '/tracklet-public/dashboard.html');
+          window.history.replaceState({}, document.title, 'dashboard.html');
           log('🧹 URL cleaned');
         }
         
@@ -344,7 +344,7 @@
         log('🗑️ Token removed from localStorage');
         log('➡️ Redirecting to login in 2s...');
         setTimeout(() => {
-          window.location.href = '/tracklet-public/login.html';
+          window.location.href = 'login.html';
         }, 2000);
       }
     } catch (error) {
@@ -358,7 +358,7 @@
       log('🗑️ Token removed due to error');
       log('➡️ Redirecting to login in 3s...');
       setTimeout(() => {
-        window.location.href = '/tracklet-public/login.html';
+        window.location.href = 'login.html';
       }, 3000);
     }
   }
@@ -367,7 +367,7 @@
   if (document.getElementById('logoutBtn')) {
     document.getElementById('logoutBtn').addEventListener('click', () => {
       localStorage.removeItem('token');
-      window.location.href = '/tracklet-public/login.html';
+      window.location.href = 'login.html';
     });
   }
 
