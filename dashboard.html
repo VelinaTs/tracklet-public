@@ -213,59 +213,70 @@
   </div>
 
   <script>
-    // Check authentication
-    const token = localStorage.getItem('token') || new URLSearchParams(window.location.search).get('token');
-    
-    if (!token) {
-      window.location.href = '/login.html';
-    } else if (window.location.search.includes('token=')) {
-      // Store token from URL and clean URL
-      localStorage.setItem('token', token);
-      window.history.replaceState({}, document.title, '/dashboard.html');
-    }
+  const API_URL = 'https://price-monitor-backend-production-e326.up.railway.app';
+  
+  // Get token from URL or localStorage
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlToken = urlParams.get('token');
+  let token = urlToken || localStorage.getItem('token'); // ← CHANGED:  Get urlToken first
 
-    // Fetch user data
-    async function loadUserData() {
-      try {
-        const response = await fetch('/api/auth/me', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+  // If token in URL, save it and clean URL
+  if (urlToken) {
+    localStorage.setItem('token', urlToken);
+    token = urlToken;
+    // Clean URL without page reload
+    window.history.replaceState({}, document.title, '/tracklet-public/dashboard.html');
+  }
 
-        if (response.ok) {
-          const data = await response.json();
-          const user = data.user;
-          
-          document.getElementById('userName').textContent = user.name;
-          
-          const avatar = document.getElementById('userAvatar');
-          if (user.avatar_url) {
-            avatar.innerHTML = `<img src="${user.avatar_url}" alt="${user.name}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
-          } else {
-            avatar.textContent = user.name.charAt(0).toUpperCase();
-          }
-        } else {
-          // Invalid token, redirect to login
-          localStorage.removeItem('token');
-          window.location.href = '/login.html';
+  // If no token at all, redirect to login
+  if (!token) {
+    window.location.href = '/tracklet-public/login.html';
+  }
+
+  // Fetch user data
+  async function loadUserData() {
+    try {
+      const response = await fetch(`${API_URL}/api/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
-      } catch (error) {
-        console.error('Error loading user data:', error);
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const user = data.user;
+        
+        document.getElementById('userName').textContent = user.name;
+        
+        const avatar = document.getElementById('userAvatar');
+        if (user.avatar_url) {
+          avatar.innerHTML = `<img src="${user.avatar_url}" alt="${user.name}" style="width: 100%; height: 100%; border-radius: 50%; object-fit:  cover;">`;
+        } else {
+          avatar.textContent = user.name.charAt(0).toUpperCase();
+        }
+      } else {
+        // Invalid token, redirect to login
+        localStorage.removeItem('token');
+        window.location.href = '/tracklet-public/login.html';
       }
-    }
-
-    loadUserData();
-
-    // Logout
-    document.getElementById('logoutBtn').addEventListener('click', () => {
+    } catch (error) {
+      console.error('Error loading user data:', error);
       localStorage.removeItem('token');
-      window.location.href = '/login.html';
-    });
+      window.location.href = '/tracklet-public/login.html';
+    }
+  }
 
-    // Theme toggle (sync with login/signup)
-    const currentTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', currentTheme);
-  </script>
+  loadUserData();
+
+  // Logout
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.removeItem('token');
+    window.location.href = '/tracklet-public/login.html';
+  });
+
+  // Theme
+  const currentTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', currentTheme);
+</script>
 </body>
 </html>
