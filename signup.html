@@ -814,7 +814,11 @@
       localStorage.setItem('authToken', callbackToken);
       
       // Clear the URL
-      window.history.replaceState({}, document.title, window.location.pathname);
+      window.history.replaceState(
+  {},
+  document.title,
+  './signup.html'
+);
       
       // Redirect to dashboard
       window.location.href = 'dashboard.html';
