@@ -1,0 +1,1831 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <!-- ==================== BASIC META & SEO ==================== -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tracklet – Competitor Price Tracking Chrome Extension | Never Get Undercut Again</title>
+  <meta name="description" content="Tracklet is a powerful Chrome extension that automatically monitors competitor prices in real-time for Shopify, WooCommerce & other e-commerce stores. Get instant alerts when prices drop. Start your 14-day free trial – no credit card required."/>
+  <meta name="keywords" content="competitor price tracking, price monitoring tool, e-commerce price tracker, Shopify price monitoring, dropshipping tools, real-time price alerts, competitor analysis chrome extension, automated price tracking"/>
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://tracklet.app/"/>
+  <meta property="og:title" content="Tracklet – Never Get Undercut Again"/>
+  <meta property="og:description" content="Automatically track competitor prices and protect your margins with instant alerts. Perfect for Shopify store owners, dropshippers & online retailers."/>
+  <meta property="og:image" content="https://tracklet.app/og-image.jpg"/>
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="Tracklet – Competitor Price Tracking Chrome Extension"/>
+  <meta name="twitter:description" content="Stay ahead of price changes with real-time monitoring & instant alerts."/>
+  <meta name="twitter:image" content="https://tracklet.app/og-image.jpg"/>
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://tracklet.app/"/>
+
+  <!-- Favicon & App Icons -->
+  <link rel="icon" href="/favicon.ico"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"/>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==================== CSS VARIABLES ==================== */
+    :root {
+      /* Light theme */
+      --primary: #2563eb;
+      --primary-light: #3b82f6;
+      --primary-dark: #1e40af;
+      --primary-darker: #172554;
+      --accent: #8b5cf6;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --dark: #0f172a;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-300: #cbd5e1;
+      --gray-400: #94a3b8;
+      --gray-500: #64748b;
+      --gray-600: #475569;
+      --gray-700: #334155;
+      --gray-800: #1e293b;
+      --gray-900: #0f172a;
+
+      --bg: var(--gray-50);
+      --bg-secondary: white;
+      --text: var(--gray-900);
+      --text-secondary: var(--gray-600);
+      --border: var(--gray-200);
+      --card-bg: white;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -2px rgba(0,0,0,0.05);
+      --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.08), 0 8px 10px -6px rgba(0,0,0,0.04);
+      --shadow-xl: 0 25px 50px -12px rgba(0,0,0,0.15);
+      --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      --gradient-hero: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    [data-theme="dark"] {
+      /* Dark theme */
+      --bg: #0a0f1a;
+      --bg-secondary: #131c2e;
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --border: #1e293b;
+      --card-bg: #151f32;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.5);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+      --shadow-lg: 0 20px 40px rgba(0,0,0,0.5);
+      --shadow-xl: 0 25px 60px rgba(0,0,0,0.6);
+    }
+
+    /* ==================== BASE STYLES ==================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+      transition: background 0.4s ease, color 0.4s ease;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    /* Smooth reveal animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    .animate-fade-in {
+      animation: fadeInUp 0.6s ease forwards;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    h1, h2, h3, h4, h5 {
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--text);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* ==================== NAVIGATION ==================== */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(248, 250, 252, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+      z-index: 1000;
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    [data-theme="dark"] nav {
+      background: rgba(10, 15, 26, 0.85);
+      border-bottom: 1px solid rgba(30, 41, 59, 0.5);
+    }
+
+    nav.scrolled {
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    [data-theme="dark"] nav.scrolled {
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .nav-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 80px;
+    }
+
+    .logo {
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    [data-theme="dark"] .logo {
+      background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2.75rem;
+      font-weight: 500;
+    }
+
+    .nav-links a {
+      color: var(--text-secondary);
+      transition: color 0.2s ease;
+    }
+
+    .nav-links a:hover,
+    .nav-links a:focus {
+      color: var(--primary);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .theme-toggle {
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: transform 0.3s ease, color 0.2s ease;
+      padding: 0.5rem;
+    }
+
+    .theme-toggle:hover {
+      color: var(--primary);
+      transform: scale(1.15);
+    }
+
+    /* ==================== BUTTONS ==================== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.875rem 1.75rem;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      border: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.25);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-primary:active {
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 2px solid var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-outline:hover {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      font-size: 1.8rem;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    /* ==================== HERO ==================== */
+    #hero {
+      padding-top: 12rem;
+      padding-bottom: 10rem;
+      background: linear-gradient(135deg, var(--bg) 0%, #f0f9ff 50%, #e0f2fe 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    #hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 80%;
+      height: 150%;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    #hero::after {
+      content: '';
+      position: absolute;
+      bottom: -30%;
+      left: -20%;
+      width: 60%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.06) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    [data-theme="dark"] #hero {
+      background: linear-gradient(135deg, #0a0f1a 0%, #131c2e 50%, #1a1f35 100%);
+    }
+
+    [data-theme="dark"] #hero::before {
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, transparent 60%);
+    }
+
+    [data-theme="dark"] #hero::after {
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: center;
+    }
+
+    .hero-content h1 {
+      font-size: 4.2rem;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.03em;
+    }
+
+    .hero-content h1 span {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+    }
+
+    .hero-content h1 span::after {
+      content: '';
+      position: absolute;
+      bottom: 0.1em;
+      left: 0;
+      right: 0;
+      height: 0.12em;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      opacity: 0.3;
+      border-radius: 2px;
+    }
+
+    .subheadline {
+      font-size: 1.4rem;
+      color: var(--text-secondary);
+      max-width: 540px;
+      margin-bottom: 3rem;
+    }
+
+    .trust-badges span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: rgba(37, 99, 235, 0.05);
+      border-radius: 2rem;
+      border: 1px solid rgba(37, 99, 235, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .trust-badges span:hover {
+      background: rgba(37, 99, 235, 0.1);
+      border-color: rgba(37, 99, 235, 0.2);
+    }
+
+    [data-theme="dark"] .trust-badges span {
+      background: rgba(96, 165, 250, 0.1);
+      border-color: rgba(96, 165, 250, 0.15);
+    }
+
+    .mockup-container {
+      position: relative;
+    }
+
+    .mockup {
+      width: 100%;
+      border-radius: 1.25rem;
+      overflow: hidden;
+      box-shadow: 
+        0 0 0 1px rgba(0,0,0,0.05),
+        0 25px 50px -12px rgba(0, 0, 0, 0.15),
+        0 0 100px rgba(37, 99, 235, 0.1);
+      border: 1px solid rgba(255,255,255,0.1);
+      background: linear-gradient(145deg, var(--card-bg) 0%, var(--bg-secondary) 100%);
+      aspect-ratio: 16/10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gray-400);
+      font-weight: 500;
+      position: relative;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    .mockup::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(37,99,235,0.03) 0%, rgba(139,92,246,0.03) 100%);
+      pointer-events: none;
+    }
+
+    [data-theme="dark"] .mockup {
+      box-shadow: 
+        0 0 0 1px rgba(255,255,255,0.05),
+        0 25px 50px -12px rgba(0, 0, 0, 0.5),
+        0 0 100px rgba(37, 99, 235, 0.15);
+    }
+
+    /* ==================== SOCIAL PROOF ==================== */
+    #social-proof {
+      background: var(--bg-secondary);
+      padding: 4rem 0;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+
+    #social-proof h3 {
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-size: 0.9rem !important;
+    }
+
+    .logos {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 3rem;
+      flex-wrap: wrap;
+      margin-top: 2.5rem;
+    }
+
+    .logo-placeholder {
+      width: 100px;
+      height: 36px;
+      background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 2s infinite;
+      border-radius: 0.375rem;
+      opacity: 0.7;
+    }
+
+    [data-theme="dark"] .logo-placeholder {
+      background: linear-gradient(90deg, var(--gray-700) 25%, var(--gray-600) 50%, var(--gray-700) 75%);
+      background-size: 200% 100%;
+      opacity: 0.5;
+    }
+
+    /* ==================== SECTIONS ==================== */
+    section {
+      padding: 10rem 0;
+      background: var(--bg);
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 3rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .section-subtitle {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 1.3rem;
+      max-width: 680px;
+      margin: 0 auto 5rem;
+    }
+
+    /* ==================== CARDS ==================== */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 2rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1.25rem;
+      padding: 2.5rem;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s ease;
+    }
+
+    .card:hover {
+      border-color: transparent;
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-8px);
+    }
+
+    .card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .card-icon {
+      font-size: 2.75rem;
+      margin-bottom: 1.25rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 4rem;
+      height: 4rem;
+      background: linear-gradient(135deg, rgba(37,99,235,0.1) 0%, rgba(139,92,246,0.1) 100%);
+      border-radius: 1rem;
+    }
+
+    [data-theme="dark"] .card-icon {
+      background: linear-gradient(135deg, rgba(96,165,250,0.15) 0%, rgba(167,139,250,0.15) 100%);
+    }
+
+    .card h3 {
+      font-size: 1.35rem;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.01em;
+    }
+
+    .card p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+
+    /* ==================== HOW IT WORKS ==================== */
+    #how-it-works {
+      background: linear-gradient(to bottom, #f0f9ff, var(--bg));
+    }
+
+    [data-theme="dark"] #how-it-works {
+      background: linear-gradient(to bottom, #1e293b, var(--bg));
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 4rem;
+    }
+
+    .step {
+      text-align: center;
+    }
+
+    .step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 5rem;
+      height: 5rem;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      color: white;
+      border-radius: 50%;
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 1.75rem;
+      box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
+      position: relative;
+    }
+
+    .step-number::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      opacity: 0.2;
+      z-index: -1;
+    }
+
+    .step-placeholder {
+      width: 100%;
+      height: 160px;
+      background: linear-gradient(135deg, var(--border) 0%, var(--gray-100) 100%);
+      border-radius: 1rem;
+      margin: 1.5rem 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      border: 1px dashed var(--gray-300);
+    }
+
+    [data-theme="dark"] .step-placeholder {
+      background: linear-gradient(135deg, var(--gray-800) 0%, var(--gray-700) 100%);
+      border-color: var(--gray-600);
+    }
+
+    .step h3 {
+      margin-bottom: 0.5rem;
+    }
+
+    .step p {
+      color: var(--text-secondary);
+    }
+
+    /* ==================== PRICING ==================== */
+    #pricing {
+      background: var(--bg);
+    }
+
+    .toggle-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 4rem;
+    }
+
+    .toggle {
+      display: flex;
+      background: var(--gray-200);
+      border-radius: 999px;
+      padding: 0.4rem;
+    }
+
+    [data-theme="dark"] .toggle {
+      background: var(--gray-700);
+    }
+
+    .toggle-btn {
+      padding: 0.75rem 1.75rem;
+      border: none;
+      background: transparent;
+      font-weight: 600;
+      font-size: 0.9rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      color: var(--text-secondary);
+    }
+
+    .toggle-btn.active {
+      background: var(--card-bg);
+      box-shadow: var(--shadow-md);
+      color: var(--text);
+    }
+
+    .save-badge {
+      background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      margin-left: 0.5rem;
+      letter-spacing: 0.02em;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 2.5rem;
+    }
+
+    .price-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1.25rem;
+      padding: 2.75rem 2.25rem;
+      position: relative;
+      transition: all 0.35s ease;
+    }
+
+    .price-card:hover {
+      box-shadow: var(--shadow-md);
+    }
+
+    .price-card.popular {
+      border-color: transparent;
+      background: linear-gradient(var(--card-bg), var(--card-bg)) padding-box,
+                  linear-gradient(135deg, var(--primary), var(--accent)) border-box;
+      border: 2px solid transparent;
+      box-shadow: 
+        0 25px 50px -12px rgba(37,99,235,0.25),
+        0 0 60px rgba(37, 99, 235, 0.1);
+      transform: scale(1.04);
+      z-index: 2;
+    }
+
+    .popular-badge {
+      position: absolute;
+      top: -1.1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      color: white;
+      padding: 0.5rem 1.5rem;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+    }
+
+    .price-card h3 {
+      font-size: 1.5rem;
+    }
+
+    .price {
+      font-size: 3.5rem;
+      font-weight: 800;
+      margin: 1.25rem 0;
+    }
+
+    .price small {
+      font-size: 1.4rem;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+
+    .price-card .subtitle {
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+    }
+
+    .features-list {
+      margin: 2rem 0;
+      line-height: 2.2;
+      color: var(--text-secondary);
+    }
+
+    .features-list div {
+      display: flex;
+      align-items: center;
+    }
+
+    .check {
+      color: var(--success);
+      margin-right: 0.75rem;
+      font-weight: bold;
+    }
+
+    /* ==================== TESTIMONIALS ==================== */
+    #testimonials {
+      background: var(--bg-secondary);
+    }
+
+    .testimonial-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 2.5rem;
+    }
+
+    .testimonial {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 2.5rem;
+      border-radius: 1.25rem;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    .testimonial::before {
+      content: '"';
+      position: absolute;
+      top: 1.5rem;
+      left: 1.5rem;
+      font-size: 4rem;
+      font-family: Georgia, serif;
+      color: var(--primary);
+      opacity: 0.15;
+      line-height: 1;
+    }
+
+    .testimonial:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-4px);
+    }
+
+    .stars {
+      color: #fbbf24;
+      margin-bottom: 1.25rem;
+      font-size: 1.2rem;
+      letter-spacing: 0.1em;
+    }
+
+    .testimonial p {
+      color: var(--text-secondary);
+      font-size: 1.05rem;
+      line-height: 1.7;
+    }
+
+    .testimonial-author {
+      margin-top: 1.5rem;
+      font-weight: 600;
+    }
+
+    .testimonial-author span {
+      font-weight: normal;
+      color: var(--text-secondary);
+    }
+
+    /* ==================== FAQ ==================== */
+    #faq {
+      background: var(--bg);
+    }
+
+    .faq-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .faq-item {
+      border-bottom: 1px solid var(--border);
+      padding: 1.75rem 0;
+    }
+
+    .faq-question {
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1.2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--text);
+    }
+
+    .faq-toggle {
+      font-size: 1.75rem;
+      color: var(--primary);
+      transition: transform 0.35s ease;
+      font-weight: 300;
+    }
+
+    .faq-toggle.active {
+      transform: rotate(45deg);
+    }
+
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      color: var(--text-secondary);
+      transition: max-height 0.45s ease, margin 0.45s ease;
+      line-height: 1.8;
+    }
+
+    .faq-answer.open {
+      max-height: 500px;
+      margin-top: 1.25rem;
+    }
+
+    /* ==================== FINAL CTA ==================== */
+    #cta {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 50%, var(--accent) 100%);
+      background-size: 200% 200%;
+      animation: gradientShift 8s ease infinite;
+      color: white;
+      text-align: center;
+      padding: 12rem 0 10rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    #cta::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    #cta .container {
+      max-width: 700px;
+      position: relative;
+      z-index: 1;
+    }
+
+    #cta h2 {
+      color: white;
+      font-size: 3rem;
+    }
+
+    #cta .subtitle {
+      font-size: 1.4rem;
+      opacity: 0.95;
+      margin: 1.5rem 0 2.5rem;
+    }
+
+    .cta-form {
+      display: flex;
+      max-width: 580px;
+      margin: 3rem auto;
+      gap: 1rem;
+    }
+
+    .cta-form input {
+      flex: 1;
+      padding: 1.2rem 1.75rem;
+      border-radius: 0.75rem;
+      border: none;
+      font-size: 1.125rem;
+      font-family: inherit;
+      background-color: white;
+      color: var(--gray-900);
+    }
+
+    .cta-form input:focus {
+      outline: 3px solid rgba(255,255,255,0.5);
+    }
+
+    .cta-form button {
+      padding: 1.2rem 2.5rem;
+      font-size: 1.125rem;
+      font-weight: 700;
+      background: white;
+      color: var(--primary-dark);
+      border: none;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-form button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(37,99,235,0.1), transparent);
+      transition: left 0.5s;
+    }
+
+    .cta-form button:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+
+    .cta-form button:hover::before {
+      left: 100%;
+    }
+
+    .cta-badges {
+      margin-top: 2rem;
+      font-size: 1.1rem;
+      opacity: 0.95;
+    }
+
+    /* ==================== FOOTER ==================== */
+    footer {
+      background: linear-gradient(180deg, var(--dark) 0%, #070a10 100%);
+      color: var(--gray-400);
+      padding: 6rem 0 3rem;
+      position: relative;
+    }
+
+    footer::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--primary), var(--accent), transparent);
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 4rem;
+    }
+
+    .footer-brand .logo {
+      color: white;
+      font-size: 2rem;
+    }
+
+    .footer-brand p {
+      margin-top: 0.75rem;
+      line-height: 1.7;
+    }
+
+    .footer-title {
+      color: white;
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+
+    .footer-links a {
+      display: block;
+      margin-bottom: 1rem;
+      color: var(--gray-400);
+      transition: color 0.25s;
+    }
+
+    .footer-links a:hover {
+      color: white;
+    }
+
+    .social-icons {
+      display: flex;
+      gap: 1.25rem;
+      margin-top: 1rem;
+    }
+
+    .social-icons a {
+      font-size: 1.8rem;
+      color: var(--gray-400);
+      transition: color 0.25s;
+    }
+
+    .social-icons a:hover {
+      color: white;
+    }
+
+    .copyright {
+      text-align: center;
+      margin-top: 5rem;
+      padding-top: 3rem;
+      border-top: 1px solid #334155;
+      font-size: 0.95rem;
+    }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 1024px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .hero-content {
+        max-width: 650px;
+        margin: 0 auto;
+      }
+
+      .subheadline {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .trust-badges {
+        justify-content: center;
+      }
+
+      .mockup-container {
+        margin-top: 4rem;
+      }
+
+      .hero-content h1 {
+        font-size: 3.5rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--bg);
+        flex-direction: column;
+        padding: 2.5rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+        box-shadow: var(--shadow-md);
+        gap: 1.5rem;
+      }
+
+      .nav-links.active {
+        display: flex;
+      }
+
+      .mobile-menu-btn {
+        display: block;
+      }
+
+      .hero-content h1 {
+        font-size: 2.75rem;
+      }
+
+      .subheadline {
+        font-size: 1.2rem;
+      }
+
+      section {
+        padding: 6rem 0;
+      }
+
+      .section-title {
+        font-size: 2.25rem;
+      }
+
+      .section-subtitle {
+        font-size: 1.1rem;
+        margin-bottom: 3rem;
+      }
+
+      .cards-grid,
+      .pricing-grid,
+      .testimonial-grid,
+      .steps-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .price-card.popular {
+        transform: none;
+      }
+
+      .cta-form {
+        flex-direction: column;
+      }
+
+      #cta {
+        padding: 8rem 0 6rem;
+      }
+
+      #cta h2 {
+        font-size: 2.25rem;
+      }
+    }
+
+    /* ==================== ACCESSIBILITY ==================== */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
+
+  <!-- Structured Data (JSON-LD) for better SEO -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Tracklet",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Chrome",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "EUR",
+      "priceValidUntil": "2026-01-01",
+      "availability": "https://schema.org/InStock",
+      "url": "https://tracklet.app/"
+    },
+    "description": "Automatic competitor price tracking Chrome extension with real-time alerts for e-commerce stores",
+    "featureList": "Price monitoring, Instant alerts, Price history charts, Multi-platform support, Easy setup",
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "reviewCount": "142"
+    }
+  }
+  </script>
+</head>
+<body>
+
+  <!-- NAVIGATION -->
+  <nav id="navbar">
+    <div class="container nav-container">
+      <a href="#" class="logo">Tracklet</a>
+
+      <div class="nav-links" id="navLinks">
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#testimonials">Testimonials</a>
+        <a href="#faq">FAQ</a>
+        <a href="mailto:hello@tracklet.com">Contact</a>
+      </div>
+
+      <div class="nav-actions">
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
+        <a href="#cta" class="btn btn-primary">Start Free Trial</a>
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle mobile menu">☰</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO SECTION -->
+  <section id="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-content">
+          <h1>Never Get <span>Undercut</span> Again</h1>
+          <p class="subheadline">Automatically monitor competitor prices in real-time and receive instant alerts when they drop. Built specifically for Shopify, WooCommerce & dropshipping businesses.</p>
+
+          <div style="margin: 3rem 0 2.5rem;">
+            <a href="#cta" class="btn btn-primary" style="padding: 1.15rem 2.5rem; font-size: 1.15rem; margin-right: 1.25rem;">Install Browser Extension</a>
+            <a href="#how-it-works" class="btn btn-outline">See How It Works →</a>
+          </div>
+
+          <div class="trust-badges">
+            <span>✓ 14-day free trial</span>
+            <span>✓ No credit card required</span>
+            <span>✓ Cancel anytime</span>
+          </div>
+        </div>
+
+        <div class="mockup-container">
+          <div class="mockup">
+            <svg width="280" height="160" viewBox="0 0 280 160" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity: 0.5;">
+              <rect x="10" y="10" width="260" height="30" rx="4" fill="currentColor" fill-opacity="0.1"/>
+              <rect x="15" y="18" width="60" height="14" rx="2" fill="currentColor" fill-opacity="0.2"/>
+              <rect x="200" y="18" width="30" height="14" rx="7" fill="currentColor" fill-opacity="0.15"/>
+              <rect x="235" y="18" width="30" height="14" rx="7" fill="currentColor" fill-opacity="0.15"/>
+              <rect x="10" y="50" width="125" height="100" rx="6" fill="currentColor" fill-opacity="0.08"/>
+              <rect x="145" y="50" width="125" height="45" rx="6" fill="currentColor" fill-opacity="0.08"/>
+              <rect x="145" y="105" width="125" height="45" rx="6" fill="currentColor" fill-opacity="0.08"/>
+              <rect x="20" y="60" width="80" height="8" rx="2" fill="currentColor" fill-opacity="0.15"/>
+              <rect x="20" y="75" width="100" height="20" rx="3" fill="#2563eb" fill-opacity="0.3"/>
+              <rect x="20" y="105" width="60" height="6" rx="2" fill="currentColor" fill-opacity="0.1"/>
+              <rect x="20" y="115" width="90" height="6" rx="2" fill="currentColor" fill-opacity="0.1"/>
+              <circle cx="155" cy="75" r="8" fill="#10b981" fill-opacity="0.4"/>
+              <rect x="170" y="65" width="50" height="6" rx="2" fill="currentColor" fill-opacity="0.15"/>
+              <rect x="170" y="77" width="70" height="8" rx="2" fill="#10b981" fill-opacity="0.3"/>
+              <circle cx="155" cy="130" r="8" fill="#ef4444" fill-opacity="0.4"/>
+              <rect x="170" y="120" width="50" height="6" rx="2" fill="currentColor" fill-opacity="0.15"/>
+              <rect x="170" y="132" width="70" height="8" rx="2" fill="#ef4444" fill-opacity="0.3"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOCIAL PROOF -->
+  <section id="social-proof">
+    <div class="container">
+      <h3 style="font-size: 1.4rem; color: var(--text-secondary);">Trusted by 150+ e-commerce stores</h3>
+      
+      <div class="logos">
+        <div class="logo-placeholder"></div>
+        <div class="logo-placeholder"></div>
+        <div class="logo-placeholder"></div>
+        <div class="logo-placeholder"></div>
+        <div class="logo-placeholder"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROBLEM -->
+  <section id="problem">
+    <div class="container">
+      <h2 class="section-title">Tired of Losing Sales to Competitors?</h2>
+      <p class="section-subtitle">Manual price checking wastes hours and costs you money</p>
+
+      <div class="cards-grid">
+        <div class="card">
+          <span class="card-icon">⏰</span>
+          <h3>Hours Wasted Daily</h3>
+          <p>Manually checking competitor prices takes 1-3 hours every day</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">💸</span>
+          <h3>Missing Price Drops</h3>
+          <p>By the time you notice, your competitors already captured the sales</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">😫</span>
+          <h3>Getting Undercut</h3>
+          <p>Competitors lower prices overnight and you don't know until it's too late</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOLUTION / FEATURES -->
+  <section id="features">
+    <div class="container">
+      <h2 class="section-title">Automate Price Tracking in Minutes</h2>
+      <p class="section-subtitle">Stay competitive without lifting a finger</p>
+
+      <div class="cards-grid">
+        <div class="card">
+          <span class="card-icon">🔍</span>
+          <h3>Automatic Monitoring</h3>
+          <p>Track unlimited competitor products across all platforms</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">🔔</span>
+          <h3>Instant Alerts</h3>
+          <p>Get notified the moment prices change via email or SMS</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">📊</span>
+          <h3>Price History</h3>
+          <p>See trends and patterns with detailed price charts</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">⚡</span>
+          <h3>Real-Time Updates</h3>
+          <p>Prices checked multiple times per day automatically</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">🌍</span>
+          <h3>Multi-Platform</h3>
+          <p>Works with Shopify, WooCommerce, and most e-commerce sites</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">🚀</span>
+          <h3>One-Click Setup</h3>
+          <p>Chrome extension installs in seconds, no coding required</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how-it-works">
+    <div class="container">
+      <h2 class="section-title">Get Started in 3 Simple Steps</h2>
+      <p class="section-subtitle">Up and running in under 5 minutes</p>
+
+      <div class="steps-grid">
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-placeholder">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+          </div>
+          <h3>Install Extension</h3>
+          <p>Add Tracklet to Chrome in one click</p>
+        </div>
+
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-placeholder">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            </svg>
+          </div>
+          <h3>Add Competitor URLs</h3>
+          <p>Paste product links you want to track</p>
+        </div>
+
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-placeholder">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+          </div>
+          <h3>Get Alerts</h3>
+          <p>Receive instant notifications when prices change</p>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 5rem;">
+        <a href="#cta" class="btn btn-primary" style="padding: 1.2rem 2.75rem; font-size: 1.2rem;">Start Tracking Prices Now</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing">
+    <div class="container">
+      <h2 class="section-title">Simple, Transparent Pricing</h2>
+      <p class="section-subtitle">No hidden fees. Cancel anytime.</p>
+
+      <div class="toggle-container">
+        <div class="toggle">
+          <button class="toggle-btn active" data-period="monthly">Monthly</button>
+          <button class="toggle-btn" data-period="yearly">Yearly <span class="save-badge">Save 20%</span></button>
+        </div>
+      </div>
+
+      <div class="pricing-grid">
+        <!-- STARTER -->
+        <div class="price-card" id="starter-card">
+          <h3>Starter</h3>
+          <div class="price" data-monthly="€150" data-yearly="€120"><span data-price>€150</span><small>/month</small></div>
+          <p class="subtitle">Perfect for small stores</p>
+          
+          <div class="features-list">
+            <div><span class="check">✓</span> Track up to 50 products</div>
+            <div><span class="check">✓</span> Daily price checks</div>
+            <div><span class="check">✓</span> Email alerts</div>
+            <div><span class="check">✓</span> Basic dashboard</div>
+            <div><span class="check">✓</span> 14-day free trial</div>
+          </div>
+
+          <a href="#cta" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;">Start Free Trial</a>
+        </div>
+
+        <!-- PROFESSIONAL -->
+        <div class="price-card popular" id="pro-card">
+          <div class="popular-badge">MOST POPULAR</div>
+          <h3>Professional</h3>
+          <div class="price" data-monthly="€250" data-yearly="€200"><span data-price>€250</span><small>/month</small></div>
+          <p class="subtitle">For growing businesses</p>
+          
+          <div class="features-list">
+            <div><span class="check">✓</span> Track up to 200 products</div>
+            <div><span class="check">✓</span> Real-time price checks (6x daily)</div>
+            <div><span class="check">✓</span> Email + SMS alerts</div>
+            <div><span class="check">✓</span> Advanced analytics</div>
+            <div><span class="check">✓</span> Price history charts</div>
+            <div><span class="check">✓</span> Priority support</div>
+            <div><span class="check">✓</span> 14-day free trial</div>
+          </div>
+
+          <a href="#cta" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem; padding: 1.1rem;">Start Free Trial</a>
+        </div>
+
+        <!-- ENTERPRISE -->
+        <div class="price-card" id="enterprise-card">
+          <h3>Enterprise</h3>
+          <div class="price" data-monthly="€400" data-yearly="€320"><span data-price>€400</span><small>/month</small></div>
+          <p class="subtitle">For serious sellers</p>
+          
+          <div class="features-list">
+            <div><span class="check">✓</span> Unlimited products</div>
+            <div><span class="check">✓</span> Real-time monitoring</div>
+            <div><span class="check">✓</span> Custom integrations</div>
+            <div><span class="check">✓</span> API access</div>
+            <div><span class="check">✓</span> Dedicated account manager</div>
+            <div><span class="check">✓</span> White-label option</div>
+            <div><span class="check">✓</span> 14-day free trial</div>
+          </div>
+
+          <a href="mailto:hello@tracklet.com" class="btn btn-outline" style="width: 100%; margin-top: 1.5rem;">Contact Sales</a>
+        </div>
+      </div>
+
+      <p style="text-align: center; margin-top: 3rem; color: var(--text-secondary);">
+        All plans include 14-day free trial. No credit card required.
+      </p>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section id="testimonials">
+    <div class="container">
+      <h2 class="section-title">Loved by Store Owners</h2>
+      <p class="section-subtitle">See what our customers are saying</p>
+
+      <div class="testimonial-grid">
+        <div class="testimonial">
+          <div class="stars">★★★★★</div>
+          <p>"Tracklet saved me 10+ hours per week. I now know immediately when competitors change prices. Game changer!"</p>
+          <p class="testimonial-author">Sarah M.<br><span>Fashion Boutique Owner</span></p>
+        </div>
+
+        <div class="testimonial">
+          <div class="stars">★★★★★</div>
+          <p>"We increased our profit margins by 15% just by staying competitive with Tracklet. Best investment this year."</p>
+          <p class="testimonial-author">James K.<br><span>Electronics Store</span></p>
+        </div>
+
+        <div class="testimonial">
+          <div class="stars">★★★★★</div>
+          <p>"Setup took literally 5 minutes. The alerts are instant and accurate. Highly recommend!"</p>
+          <p class="testimonial-author">Maria L.<br><span>Home Decor Shop</span></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <div class="container">
+      <h2 class="section-title">Frequently Asked Questions</h2>
+      <p class="section-subtitle">Got questions? We've got answers.</p>
+
+      <div class="faq-container">
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Do I need technical skills to use Tracklet?</span>
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-answer">
+            Not at all! Tracklet is a simple Chrome extension. If you can browse the web, you can use Tracklet. Setup takes less than 5 minutes.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Which platforms does Tracklet support?</span>
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-answer">
+            Tracklet works with most e-commerce platforms including Shopify, WooCommerce, BigCommerce, and independent retailers. Note: Large marketplaces like Amazon coming soon.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>How often are prices checked?</span>
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-answer">
+            Starter plan: Once daily. Professional: 6 times daily. Enterprise: Real-time monitoring.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Can I cancel anytime?</span>
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-answer">
+            Yes! No contracts, no commitments. Cancel anytime with one click.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Is my data secure?</span>
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-answer">
+            Absolutely. We use bank-level encryption and never share your data with third parties.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>What happens after the free trial?</span>
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-answer">
+            After 14 days, you'll be charged for your selected plan. No surprise charges - we'll remind you 3 days before.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section id="cta">
+    <div class="container">
+      <h2 class="section-title">Ready to Stop Losing Sales?</h2>
+      <p class="subtitle">Join 150+ stores already saving time and money with Tracklet</p>
+
+      <form id="ctaForm" class="cta-form">
+        <input type="email" id="emailInput" placeholder="Enter your email address" required aria-label="Email address">
+        <button type="submit" class="btn">Start Free Trial</button>
+      </form>
+
+      <div class="cta-badges">
+        ✓ 14-day free trial  •  ✓ No credit card required  •  ✓ Setup in 5 minutes
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="logo" style="-webkit-text-fill-color: white; background: none;">Tracklet</div>
+          <p style="margin: 1rem 0 0.5rem; font-weight: 600; color: var(--gray-300);">Never get undercut again</p>
+          <p style="font-size: 0.9rem;">Automatic price tracking for e-commerce stores</p>
+        </div>
+
+        <div class="footer-links">
+          <div class="footer-title">Product</div>
+          <a href="#features">Features</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#faq">FAQ</a>
+          <a href="mailto:hello@tracklet.com">Contact</a>
+        </div>
+
+        <div class="footer-links">
+          <div class="footer-title">Company</div>
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+        </div>
+
+        <div>
+          <div class="footer-title">Contact Us</div>
+          <p>hello@tracklet.com</p>
+          <p>support@tracklet.com</p>
+          
+          <div class="social-icons">
+            <a href="#" aria-label="Twitter">
+              <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </a>
+            <a href="#" aria-label="LinkedIn">
+              <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            </a>
+            <a href="#" aria-label="Facebook">
+              <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="copyright">
+        © 2025 Tracklet. All rights reserved.
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ==================== THEME TOGGLE ====================
+    const htmlEl = document.documentElement;
+    const themeToggle = document.getElementById('themeToggle');
+
+    function setTheme(theme) {
+      htmlEl.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+
+    // Load saved theme or follow system preference
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      setTheme(savedTheme);
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      setTheme('dark');
+    }
+
+    // Toggle click handler
+    themeToggle.addEventListener('click', () => {
+      const current = htmlEl.getAttribute('data-theme') || 'light';
+      setTheme(current === 'dark' ? 'light' : 'dark');
+    });
+
+    // Listen for system preference changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+      if (!localStorage.getItem('theme')) {
+        setTheme(e.matches ? 'dark' : 'light');
+      }
+    });
+
+    // ==================== MOBILE MENU ====================
+    const mobileBtn = document.getElementById('mobileMenuBtn');
+    const navLinks = document.getElementById('navLinks');
+
+    mobileBtn.addEventListener('click', () => {
+      navLinks.classList.toggle('active');
+      mobileBtn.textContent = navLinks.classList.contains('active') ? '✕' : '☰';
+    });
+
+    // ==================== STICKY NAVBAR ====================
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 100) {
+        navbar.classList.add('scrolled');
+      } else {
+        navbar.classList.remove('scrolled');
+      }
+    });
+
+    // ==================== SMOOTH SCROLLING ====================
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        // Close mobile menu if open
+        navLinks.classList.remove('active');
+        mobileBtn.textContent = '☰';
+      });
+    });
+
+    // ==================== PRICING TOGGLE ====================
+    const toggleBtns = document.querySelectorAll('.toggle-btn');
+    const prices = document.querySelectorAll('[data-price]');
+
+    toggleBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        toggleBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        const period = btn.dataset.period;
+        
+        prices.forEach(price => {
+          const newPrice = price.parentElement.dataset[period];
+          price.textContent = newPrice;
+        });
+      });
+    });
+
+    // ==================== FAQ ACCORDION ====================
+    document.querySelectorAll('.faq-question').forEach(q => {
+      q.addEventListener('click', () => {
+        const answer = q.nextElementSibling;
+        const toggle = q.querySelector('.faq-toggle');
+        
+        // Close other open items
+        document.querySelectorAll('.faq-answer.open').forEach(a => {
+          if (a !== answer) {
+            a.classList.remove('open');
+            a.previousElementSibling.querySelector('.faq-toggle').textContent = '+';
+            a.previousElementSibling.querySelector('.faq-toggle').classList.remove('active');
+          }
+        });
+        
+        answer.classList.toggle('open');
+        toggle.textContent = answer.classList.contains('open') ? '+' : '+';
+        toggle.classList.toggle('active');
+      });
+    });
+
+    // ==================== CTA FORM ====================
+    const ctaForm = document.getElementById('ctaForm');
+    const emailInput = document.getElementById('emailInput');
+
+    ctaForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const email = emailInput.value.trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      
+      if (!email || !emailRegex.test(email)) {
+        emailInput.style.outline = '3px solid #ef4444';
+        emailInput.focus();
+        setTimeout(() => emailInput.style.outline = '', 2000);
+        return;
+      }
+      
+      // Success feedback and redirect
+      const button = ctaForm.querySelector('button');
+      const originalText = button.textContent;
+      button.textContent = '✓ Check Your Email!';
+      button.style.background = '#16a34a';
+      
+      setTimeout(() => {
+        window.location.href = 'signup.html';
+      }, 1000);
+    });
+
+    // ==================== KEYBOARD NAVIGATION ====================
+    document.querySelectorAll('.faq-question').forEach(q => {
+      q.setAttribute('tabindex', '0');
+      q.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          q.click();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard – Tracklet</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-light: #3b82f6;
+      --primary-dark: #1e40af;
+      --accent: #8b5cf6;
+      --success: #10b981;
+      --danger: #ef4444;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-300: #cbd5e1;
+      --gray-400: #94a3b8;
+      --gray-600: #475569;
+      --gray-700: #334155;
+      --gray-900: #0f172a;
+
+      --bg: var(--gray-50);
+      --bg-secondary: white;
+      --text: var(--gray-900);
+      --text-secondary: var(--gray-600);
+      --border: var(--gray-200);
+      --card-bg: white;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0a0f1a;
+      --bg-secondary: #131c2e;
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --border: #1e293b;
+      --card-bg: #151f32;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.4s ease, color 0.4s ease;
+    }
+
+    nav {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 0;
+    }
+
+    .nav-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+    }
+
+    .btn {
+      padding: 0.625rem 1.25rem;
+      border-radius: 0.5rem;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 2px solid var(--border);
+      color: var(--text);
+    }
+
+    .btn-outline:hover {
+      background: var(--gray-100);
+    }
+
+    [data-theme="dark"] .btn-outline:hover {
+      background: var(--bg);
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem;
+    }
+
+    .welcome {
+      margin-bottom: 3rem;
+    }
+
+    .welcome h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .welcome p {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 2rem;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.08);
+    }
+
+    .card h3 {
+      margin-bottom: 0.5rem;
+      font-size: 1.25rem;
+    }
+
+    .card p {
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="nav-container">
+      <div class="logo">Tracklet</div>
+      <div class="nav-actions">
+        <div class="user-info">
+          <div class="avatar" id="userAvatar"></div>
+          <span id="userName"></span>
+        </div>
+        <button class="btn btn-outline" id="logoutBtn">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="welcome">
+      <h1>Welcome back! 👋</h1>
+      <p>You're successfully logged in to your Tracklet account.</p>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <h3>🎯 Price Tracking</h3>
+        <p>Monitor competitor prices in real-time and get instant alerts when prices change.</p>
+      </div>
+      <div class="card">
+        <h3>📊 Analytics</h3>
+        <p>View detailed insights and trends about your competitors' pricing strategies.</p>
+      </div>
+      <div class="card">
+        <h3>⚙️ Settings</h3>
+        <p>Customize your tracking preferences and notification settings.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Check authentication
+    const token = localStorage.getItem('token') || new URLSearchParams(window.location.search).get('token');
+    
+    if (!token) {
+      window.location.href = '/login.html';
+    } else if (window.location.search.includes('token=')) {
+      // Store token from URL and clean URL
+      localStorage.setItem('token', token);
+      window.history.replaceState({}, document.title, '/dashboard.html');
+    }
+
+    // Fetch user data
+    async function loadUserData() {
+      try {
+        const response = await fetch('/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const user = data.user;
+          
+          document.getElementById('userName').textContent = user.name;
+          
+          const avatar = document.getElementById('userAvatar');
+          if (user.avatar_url) {
+            avatar.innerHTML = `<img src="${user.avatar_url}" alt="${user.name}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+          } else {
+            avatar.textContent = user.name.charAt(0).toUpperCase();
+          }
+        } else {
+          // Invalid token, redirect to login
+          localStorage.removeItem('token');
+          window.location.href = '/login.html';
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      }
+    }
+
+    loadUserData();
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('token');
+      window.location.href = '/login.html';
+    });
+
+    // Theme toggle (sync with login/signup)
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+  </script>
+</body>
+</html>
