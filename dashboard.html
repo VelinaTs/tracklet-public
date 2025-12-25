@@ -174,10 +174,25 @@
     .card p {
       color: var(--text-secondary);
     }
+
+    .loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
   </style>
 </head>
 <body>
-  <nav>
+  <div class="loading" id="loading">Loading...</div>
+  
+  <nav style="display: none;" id="nav">
     <div class="nav-container">
       <div class="logo">Tracklet</div>
       <div class="nav-actions">
@@ -190,7 +205,7 @@
     </div>
   </nav>
 
-  <div class="container">
+  <div class="container" style="display: none;" id="content">
     <div class="welcome">
       <h1>Welcome back! 👋</h1>
       <p>You're successfully logged in to your Tracklet account.</p>
@@ -218,61 +233,84 @@
   // Get token from URL or localStorage
   const urlParams = new URLSearchParams(window.location.search);
   const urlToken = urlParams.get('token');
-  let token = urlToken || localStorage.getItem('token'); // ← CHANGED:  Get urlToken first
+  let token = urlToken || localStorage.getItem('token');
 
-  // If token in URL, save it and clean URL
-  if (urlToken) {
-    localStorage.setItem('token', urlToken);
-    token = urlToken;
-    // Clean URL without page reload
-    window.history.replaceState({}, document.title, '/tracklet-public/dashboard.html');
-  }
+  console.log('Dashboard init - token found:', !!token);
+  console.log('URL token:', !!urlToken);
+  console.log('Current URL:', window.location.href);
 
-  // If no token at all, redirect to login
+  // If no token at all, redirect to login immediately
   if (!token) {
+    console.log('No token - redirecting to login');
     window.location.href = '/tracklet-public/login.html';
+  } else {
+    // Have token - validate it first before cleaning URL
+    loadUserData();
   }
 
   // Fetch user data
   async function loadUserData() {
     try {
+      console.log('Fetching user data...');
       const response = await fetch(`${API_URL}/api/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response headers:', [...response.headers.entries()]);
+
       if (response.ok) {
         const data = await response.json();
         const user = data.user;
         
+        console.log('User loaded successfully:', user.email);
+        
+        // Token is valid - NOW save it and clean URL
+        if (urlToken) {
+          localStorage.setItem('token', urlToken);
+          console.log('Token saved to localStorage');
+          // Clean URL without page reload
+          window.history.replaceState({}, document.title, '/tracklet-public/dashboard.html');
+        }
+        
+        // Show UI
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('nav').style.display = 'block';
+        document.getElementById('content').style.display = 'block';
+        
         document.getElementById('userName').textContent = user.name;
         
         const avatar = document.getElementById('userAvatar');
-        if (user.avatar_url) {
-          avatar.innerHTML = `<img src="${user.avatar_url}" alt="${user.name}" style="width: 100%; height: 100%; border-radius: 50%; object-fit:  cover;">`;
-        } else {
-          avatar.textContent = user.name.charAt(0).toUpperCase();
-        }
+        avatar.textContent = user.name.charAt(0).toUpperCase();
       } else {
+        console.error('Auth failed - status:', response.status);
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Error data:', errorData);
+        
         // Invalid token, redirect to login
         localStorage.removeItem('token');
         window.location.href = '/tracklet-public/login.html';
       }
     } catch (error) {
       console.error('Error loading user data:', error);
+      console.error('Error type:', error.name);
+      console.error('Error message:', error.message);
+      
+      // Network/CORS error - redirect to login
       localStorage.removeItem('token');
       window.location.href = '/tracklet-public/login.html';
     }
   }
 
-  loadUserData();
-
   // Logout
-  document.getElementById('logoutBtn').addEventListener('click', () => {
-    localStorage.removeItem('token');
-    window.location.href = '/tracklet-public/login.html';
-  });
+  if (document.getElementById('logoutBtn')) {
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('token');
+      window.location.href = '/tracklet-public/login.html';
+    });
+  }
 
   // Theme
   const currentTheme = localStorage.getItem('theme') || 'light';
