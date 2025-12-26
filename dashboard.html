@@ -1249,13 +1249,29 @@
           alertsHtml += '</div></div>';
         }
         
+        // Additional product details
+        const alertStatus = (product.alertEnabled || product.alert_enabled) ? 'Enabled' : 'Disabled';
+        const alertColor = (product.alertEnabled || product.alert_enabled) ? 'var(--success)' : 'var(--text-secondary)';
+        const trackingSince = product.created_at ? new Date(product.created_at).toLocaleDateString() : 'Unknown';
+        const lastUpdated = product.updated_at ? new Date(product.updated_at).toLocaleString() : 'Never';
+        const lastChecked = product.last_checked || product.lastChecked;
+        const lastCheckedDisplay = lastChecked ? new Date(lastChecked).toLocaleString() : 'Never';
+        
         modalContent.innerHTML = `
           <div style=\"display:flex; gap:1.5rem; margin-bottom:1.5rem;\">
             ${(product.imageUrl || product.image_url) ? `<img src=\"${product.imageUrl || product.image_url}\" alt=\"${product.name}\" style=\"width:120px; height:120px; object-fit:cover; border-radius:8px;\">` : '<div style=\"width:120px; height:120px; background:var(--gray-200); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:3rem;\">📦</div>'}
             <div style=\"flex:1;\">
               <h2 style=\"margin-bottom:0.5rem;\">${product.name || 'Product Details'}</h2>
               <p style=\"color:var(--text-secondary); margin-bottom:0.5rem;\">${product.retailer || 'Unknown Retailer'}</p>
-              <a href=\"${product.url}\" target=\"_blank\" style=\"color:var(--primary); text-decoration:none;\">View Product ↗</a>
+              <a href=\"${product.url}\" target=\"_blank\" style=\"color:var(--primary); text-decoration:none; font-size:0.9rem;\">View Product ↗</a>
+              <div style=\"margin-top:0.75rem; display:flex; gap:0.5rem; flex-wrap:wrap;\">
+                <span style=\"padding:0.25rem 0.75rem; background:${alertColor}15; color:${alertColor}; border-radius:999px; font-size:0.8rem; font-weight:600;\">
+                  ${alertStatus === 'Enabled' ? '🔔' : '🔕'} Alerts ${alertStatus}
+                </span>
+                <span style=\"padding:0.25rem 0.75rem; background:var(--primary)15; color:var(--primary); border-radius:999px; font-size:0.8rem; font-weight:600;\">
+                  ID: ${product.id}
+                </span>
+              </div>
             </div>
           </div>
           
@@ -1263,14 +1279,32 @@
             <div style=\"padding:1rem; background:var(--bg); border:1px solid var(--border); border-radius:8px;\">
               <div style=\"font-size:0.85rem; color:var(--text-secondary);\">Current Price</div>
               <div style=\"font-size:1.5rem; font-weight:700; color:var(--success); margin-top:0.25rem;\">${currencySymbol}${currentPrice}</div>
+              <div style=\"font-size:0.75rem; color:var(--text-secondary); margin-top:0.25rem;\">${currency}</div>
             </div>
             <div style=\"padding:1rem; background:var(--bg); border:1px solid var(--border); border-radius:8px;\">
               <div style=\"font-size:0.85rem; color:var(--text-secondary);\">Alert Threshold</div>
               <div style=\"font-size:1.5rem; font-weight:700; margin-top:0.25rem;\">${product.alert_threshold ? currencySymbol + parseFloat(product.alert_threshold).toFixed(2) : 'Not Set'}</div>
+              <div style=\"font-size:0.75rem; color:var(--text-secondary); margin-top:0.25rem;\">${product.alert_threshold ? 'Trigger below' : 'No alert set'}</div>
             </div>
             <div style=\"padding:1rem; background:var(--bg); border:1px solid var(--border); border-radius:8px;\">
-              <div style=\"font-size:0.85rem; color:var(--text-secondary);\">Last Checked</div>
-              <div style=\"font-size:1rem; font-weight:600; margin-top:0.25rem;\">${product.last_checked ? new Date(product.last_checked).toLocaleDateString() : 'Never'}</div>
+              <div style=\"font-size:0.85rem; color:var(--text-secondary);\">Tracking Since</div>
+              <div style=\"font-size:1rem; font-weight:600; margin-top:0.25rem;\">${trackingSince}</div>
+              <div style=\"font-size:0.75rem; color:var(--text-secondary); margin-top:0.25rem;\">${product.created_at ? new Date(product.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</div>
+            </div>
+          </div>
+          
+          <div style=\"display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:0.75rem; margin-bottom:1.5rem; padding:1rem; background:var(--bg); border:1px solid var(--border); border-radius:8px;\">
+            <div style=\"display:flex; justify-content:space-between;\">
+              <span style=\"color:var(--text-secondary); font-size:0.9rem;\">Last Checked:</span>
+              <strong style=\"font-size:0.9rem;\">${lastCheckedDisplay}</strong>
+            </div>
+            <div style=\"display:flex; justify-content:space-between;\">
+              <span style=\"color:var(--text-secondary); font-size:0.9rem;\">Last Updated:</span>
+              <strong style=\"font-size:0.9rem;\">${lastUpdated}</strong>
+            </div>
+            <div style=\"display:flex; justify-content:space-between;\">
+              <span style=\"color:var(--text-secondary); font-size:0.9rem;\">Product URL:</span>
+              <a href=\"${product.url}\" target=\"_blank\" style=\"color:var(--primary); font-size:0.9rem; text-decoration:none; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;\">Link ↗</a>
             </div>
           </div>
           
