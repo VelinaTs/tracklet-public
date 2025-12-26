@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout – Tracklet</title>
+  <base href="/tracklet-public/">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-light: #3b82f6;
+      --primary-dark: #1e40af;
+      --primary-darker: #172554;
+      --accent: #8b5cf6;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --dark: #0f172a;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-300: #cbd5e1;
+      --gray-400: #94a3b8;
+      --gray-500: #64748b;
+      --gray-600: #475569;
+      --gray-700: #334155;
+      --gray-800: #1e293b;
+      --gray-900: #0f172a;
+      --bg: var(--gray-50);
+      --bg-secondary: white;
+      --text: var(--gray-900);
+      --text-secondary: var(--gray-600);
+      --border: var(--gray-200);
+      --card-bg: white;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -2px rgba(0,0,0,0.05);
+      --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.08), 0 8px 10px -6px rgba(0,0,0,0.04);
+    }
+    [data-theme="dark"] {
+      --bg: #0a0f1a;
+      --bg-secondary: #131c2e;
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --border: #1e293b;
+      --card-bg: #151f32;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Navigation Styling matching index.html */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,255,255,0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    [data-theme="dark"] nav { background: rgba(10,15,26,0.8); }
+    .nav-container { max-width: 1100px; margin: 0 auto; padding: 0.8rem 1.5rem; display:flex; align-items:center; justify-content:space-between; }
+    .logo { font-weight: 800; font-size: 1.4rem; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+    /* Layout */
+    .container { max-width: 1100px; margin: 0 auto; padding: 3rem 1.5rem; }
+    .checkout-wrapper { display: grid; grid-template-columns: 1fr 400px; gap: 3rem; }
+    @media (max-width: 900px) { .checkout-wrapper { grid-template-columns: 1fr; } }
+
+    /* Forms */
+    .form-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: var(--shadow-md);
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .form-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+    }
+
+    .section-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    input, select {
+      width: 100%; padding: 0.8rem 1rem; border: 1.5px solid var(--border); border-radius: 12px;
+      background: var(--bg); color: var(--text); font-family: inherit; transition: all 0.2s;
+    }
+    input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
+
+    /* Payment Buttons */
+    .btn {
+      width: 100%; padding: 1rem; border-radius: 12px; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 0.75rem; border: none; transition: all 0.2s;
+    }
+    .btn-primary { background: var(--primary); color: white; box-shadow: 0 10px 20px -5px rgba(37,99,235,0.4); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 15px 30px -5px rgba(37,99,235,0.5); }
+    
+    .btn-apple { background: #000; color: white; margin-bottom: 1.5rem; }
+    .btn-apple:hover { background: #222; }
+
+    /* Order Summary Sticky Card */
+    .summary-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 24px; padding: 2rem;
+      box-shadow: var(--shadow-lg); position: sticky; top: 100px;
+    }
+    .price-display { font-size: 2.5rem; font-weight: 800; margin: 1rem 0; letter-spacing: -1px; }
+    .summary-row { display: flex; justify-content: space-between; margin-bottom: 0.75rem; font-size: 0.95rem; color: var(--text-secondary); }
+    .total-row { border-top: 1px solid var(--border); margin-top: 1rem; padding-top: 1rem; font-weight: 800; color: var(--text); font-size: 1.2rem; }
+
+    /* Toggles */
+    .period-switcher { background: var(--gray-100); padding: 0.4rem; border-radius: 14px; display: flex; gap: 0.25rem; margin-bottom: 1.5rem; }
+    [data-theme="dark"] .period-switcher { background: var(--gray-800); }
+    .period-btn { flex: 1; border: none; padding: 0.6rem; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer; background: transparent; color: var(--text-secondary); }
+    .period-btn.active { background: var(--card-bg); color: var(--primary); box-shadow: var(--shadow-sm); }
+
+    .badge-save { background: var(--success); color: white; padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.7rem; font-weight: 800; margin-left: auto; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-container">
+      <div class="logo">Tracklet</div>
+      <div style="display:flex; align-items:center; gap:1.5rem;">
+        <a href="dashboard.html" style="font-size:0.9rem; font-weight:600; color:var(--text-secondary);">Cancel</a>
+        <button id="themeToggle" style="border:none; background:transparent; cursor:pointer; font-size:1.2rem;">🌙</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div class="checkout-wrapper">
+      <div class="checkout-main">
+        <h1 style="font-size: 2.5rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 2rem;">Checkout</h1>
+
+        <div class="form-card" style="text-align: center; padding: 3rem;">
+          <div class="section-title" style="justify-content: center;"><span>🔒</span> Secure Checkout</div>
+          <p style="margin-bottom: 2rem; color: var(--text-secondary);">
+            You will be redirected to Stripe's secure servers to complete your purchase using Card, Apple Pay, or Google Pay.
+          </p>
+          
+          <button id="checkout-button" class="btn btn-primary" style="max-width: 400px; margin: 0 auto;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            Proceed to Secure Payment
+          </button>
+          
+          <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border);">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
+              <span>🔐 256-bit SSL Encryption</span>
+              <span>•</span>
+              <span>💳 PCI Compliant</span>
+              <span>•</span>
+              <span>✓ Powered by Stripe</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="summary-card">
+          <div style="font-weight: 800; font-size: 0.8rem; text-transform: uppercase; color: var(--primary); letter-spacing: 1px;">Selected Plan</div>
+          <div id="planName" style="font-size: 1.5rem; font-weight: 800; margin-top: 0.25rem;">Professional</div>
+          
+          <div class="price-display">
+            <span id="totalAmount">€250</span><span style="font-size:1rem; color:var(--text-secondary); font-weight:500;"></span>
+          </div>
+
+          <div class="period-switcher">
+            <button class="period-btn active" onclick="updatePeriod('monthly')">Monthly</button>
+            <button class="period-btn" onclick="updatePeriod('yearly')">Yearly <span id="saveBadge" class="badge-save">-20%</span></button>
+          </div>
+
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <span id="planPrice">€250.00</span>
+          </div>
+          
+          <div class="total-row">
+            <span>Total Due Today</span>
+            <span id="grandTotal">€250.00</span>
+          </div>
+
+          <button class="btn btn-primary" onclick="processPayment()" style="margin-top:2rem;">
+            Complete Registration
+          </button>
+          
+          <p style="text-align:center; font-size:0.75rem; color:var(--text-secondary); margin-top:1rem;">
+            Secure 256-bit SSL Encrypted Payment
+          </p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const planParam = new URLSearchParams(window.location.search).get('plan') || 'professional';
+    const planData = {
+      starter: { 
+        name: 'Starter', 
+        monthly: 150, 
+        yearly: 1440 // (150 * 12) * 0.8
+      },
+      professional: { 
+        name: 'Professional', 
+        monthly: 250, 
+        yearly: 2400 // (250 * 12) * 0.8
+      },
+      enterprise: { 
+        name: 'Enterprise', 
+        monthly: 400, 
+        yearly: 3840 // (400 * 12) * 0.8
+      }
+    };
+
+    let currentPeriod = 'monthly';
+    let selectedPlan = planData[planParam] || planData.professional;
+
+    function updatePeriod(period) {
+      currentPeriod = period;
+      document.querySelectorAll('.period-btn').forEach((btn, idx) => {
+        btn.classList.toggle('active', (idx === 0 && period === 'monthly') || (idx === 1 && period === 'yearly'));
+      });
+      updateDisplay();
+    }
+
+    function updateDisplay() {
+      const price = selectedPlan[currentPeriod];
+      
+      document.getElementById('planName').textContent = selectedPlan.name;
+      
+      // Dynamic label: €250/mo vs €2400/yr
+      const label = currentPeriod === 'monthly' ? '/mo' : '/yr';
+      document.getElementById('totalAmount').innerHTML = `€${price}<span style="font-size:1rem; color:var(--text-secondary); font-weight:500;">${label}</span>`;
+      
+      document.getElementById('planPrice').textContent = `€${price.toFixed(2)}`;
+      document.getElementById('grandTotal').textContent = `€${price.toFixed(2)}`;
+      
+      // Show the "You saved €X" message for yearly to boost conversion
+      if(currentPeriod === 'yearly') {
+        const savings = (selectedPlan.monthly * 12) - selectedPlan.yearly;
+        document.getElementById('saveBadge').textContent = `Save €${savings}`;
+      } else {
+        document.getElementById('saveBadge').textContent = `-20%`;
+      }
+    }
+
+    // Theme Logic
+    const themeToggle = document.getElementById('themeToggle');
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+      localStorage.setItem('theme', theme);
+    }
+    setTheme(localStorage.getItem('theme') || 'light');
+    themeToggle.addEventListener('click', () => {
+      const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      setTheme(next);
+    });
+
+    // Stripe Checkout Integration
+    const stripe = Stripe('pk_test_51QZ1KPHDK7wjvGqQu0bX9dV8RewDqyI7OdKlQ95pSnF43TIwEXXlrVT1xXhgNUC4iCjpx9GOnxp9xWdVbP9jvBFZ00MzQnxzPT'); // Replace with your publishable key
+    const checkoutButton = document.getElementById('checkout-button');
+
+    checkoutButton.addEventListener('click', async () => {
+      checkoutButton.disabled = true;
+      checkoutButton.innerHTML = '<span>Processing...</span>';
+
+      try {
+        // Get current plan and period
+        const plan = new URLSearchParams(window.location.search).get('plan') || 'professional';
+        const period = currentPeriod;
+
+        // Call your backend to create a checkout session
+        const response = await fetch('https://price-monitor-backend-production-e326.up.railway.app/api/create-checkout-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ plan, period })
+        });
+
+        const session = await response.json();
+
+        if (session.error) {
+          alert(session.error);
+          checkoutButton.disabled = false;
+          checkoutButton.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg> Proceed to Secure Payment';
+          return;
+        }
+
+        // Redirect to Stripe Checkout
+        const result = await stripe.redirectToCheckout({
+          sessionId: session.id,
+        });
+
+        if (result.error) {
+          alert(result.error.message);
+          checkoutButton.disabled = false;
+          checkoutButton.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg> Proceed to Secure Payment';
+        }
+      } catch (error) {
+        alert('Error creating checkout session. Please try again.');
+        checkoutButton.disabled = false;
+        checkoutButton.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg> Proceed to Secure Payment';
+      }
+    });
+
+    updateDisplay();
+  </script>
+</body>
+</html>
