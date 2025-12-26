@@ -726,7 +726,7 @@
       </div>
     </header>
 
-    <div class="card" style="margin: 0 1rem 1.5rem; border:1px solid var(--border);">
+    <div id="upgradeBanner" class="card" style="margin: 0 1rem 1.5rem; border:1px solid var(--border);">
       <div style="display:flex; flex-wrap:wrap; align-items:center; gap:0.5rem; justify-content:space-between;">
         <div style="display:flex; align-items:center; gap:0.6rem;">
           <span style="font-size:1.2rem;">💎</span>
@@ -827,14 +827,36 @@
         </div>
 
         <div id="view-analytics" class="view-section">
-          <div class="card" style="text-align:center; padding: 4rem 1rem;">
-            <div
-              style="background:var(--gray-100); width:80px; height:80px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 1.5rem; font-size:2rem;">
-              📊</div>
+          <div id="analyticsUpsell" class="card" style="text-align:center; padding: 4rem 1rem;">
+            <div style="background:var(--gray-100); width:80px; height:80px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 1.5rem; font-size:2rem;">📊</div>
             <h3>Advanced Analytics</h3>
-            <p style="max-width:400px; margin: 0.5rem auto 2rem; color:var(--text-secondary);">Upgrade to the
-              Professional Plan to unlock competitor comparison, historical CSV export, and market trend analysis.</p>
+            <p style="max-width:400px; margin: 0.5rem auto 2rem; color:var(--text-secondary);">Upgrade to the Professional Plan to unlock competitor comparison, historical CSV export, and market trend analysis.</p>
             <button class="btn btn-primary" onclick="window.location.href='pricing.html'">Upgrade Now</button>
+          </div>
+
+          <div id="analyticsContent" style="display:none;">
+            <div class="card" style="margin-bottom:1.5rem;">
+              <h3 style="margin-bottom:1rem;">Overview</h3>
+              <div class="stats-grid">
+                <div class="card stat-card">
+                  <span class="stat-label">Tracked Items</span>
+                  <span class="stat-value" id="anItems">0</span>
+                </div>
+                <div class="card stat-card">
+                  <span class="stat-label">Recent Changes (7d)</span>
+                  <span class="stat-value" id="anChanges">0</span>
+                </div>
+                <div class="card stat-card">
+                  <span class="stat-label">Avg Price (today)</span>
+                  <span class="stat-value" id="anAvg">$0</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3 style="margin-bottom:1rem;">Top Movements</h3>
+              <div id="anMovements" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem;"></div>
+            </div>
           </div>
         </div>
 
@@ -1042,6 +1064,16 @@
           } else {
             trialInfo.style.display = 'none';
           }
+
+          // Hide upgrade banner for paid tiers
+          const upgradeBanner = document.getElementById('upgradeBanner');
+          if (upgradeBanner) {
+            const paid = tier === 'professional' || tier === 'enterprise';
+            upgradeBanner.style.display = paid ? 'none' : 'block';
+          }
+
+          // Configure analytics view for tier
+          updateAnalyticsView();
         } else {
           window.location.href = '/tracklet-public/login.html';
         }
@@ -1319,6 +1351,8 @@
         });
       }
       updateStats();
+      // Refresh analytics content in case items changed
+      updateAnalyticsView();
     }
 
     // Add Item Logic
@@ -1800,6 +1834,73 @@
           }
         }
       });
+    }
+
+    // ==================== ANALYTICS VIEW ====================
+    async function updateAnalyticsView() {
+      const tier = (currentUser && (currentUser.subscriptionTier || currentUser.subscription_tier)) || 'free';
+      const upsell = document.getElementById('analyticsUpsell');
+      const content = document.getElementById('analyticsContent');
+      if (!upsell || !content) return;
+
+      const isPaid = tier === 'professional' || tier === 'enterprise';
+      upsell.style.display = isPaid ? 'none' : 'block';
+      content.style.display = isPaid ? 'block' : 'none';
+
+      if (!isPaid) return;
+
+      const items = await getItems();
+      document.getElementById('anItems').textContent = items.length;
+
+      // Recent changes in last 7 days using history store
+      const store = getHistoryStore();
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      let changes = 0;
+      Object.values(store).forEach(list => {
+        for (let i = 1; i < (list || []).length; i++) {
+          const prev = list[i - 1];
+          const cur = list[i];
+          if (new Date(cur.ts) >= sevenDaysAgo && parseFloat(prev.price) !== parseFloat(cur.price)) {
+            changes++;
+          }
+        }
+      });
+      document.getElementById('anChanges').textContent = changes;
+
+      // Average price today
+      const todayKey = new Date().toISOString().slice(0, 10);
+      let total = 0, count = 0;
+      Object.values(store).forEach(list => {
+        (list || []).forEach(entry => {
+          const key = (entry.ts || '').slice(0, 10);
+          if (key === todayKey) { total += parseFloat(entry.price); count++; }
+        });
+      });
+      const avg = count ? (total / count) : 0;
+      document.getElementById('anAvg').textContent = '$' + avg.toFixed(2);
+
+      // Top movements (largest absolute change per product in 7d)
+      const movements = [];
+      Object.entries(store).forEach(([key, list]) => {
+        let maxDelta = 0, latest = null, name = key;
+        for (let i = 1; i < (list || []).length; i++) {
+          const a = list[i - 1], b = list[i];
+          if (new Date(b.ts) < sevenDaysAgo) continue;
+          const delta = Math.abs(parseFloat(b.price) - parseFloat(a.price));
+          if (delta > maxDelta) { maxDelta = delta; latest = b; }
+        }
+        if (maxDelta > 0) movements.push({ key, delta: maxDelta, latest });
+      });
+      movements.sort((x, y) => y.delta - x.delta);
+
+      const container = document.getElementById('anMovements');
+      container.innerHTML = movements.slice(0, 6).map(m => `
+        <div style="padding:1rem; border:1px solid var(--border); border-radius:12px; background:var(--card-bg);">
+          <div style="font-size:0.8rem; color:var(--text-secondary);">${new Date(m.latest.ts).toLocaleString()}</div>
+          <div style="font-weight:700; margin:0.25rem 0;">Change: $${m.delta.toFixed(2)}</div>
+          <div style="font-size:0.9rem; color:var(--text-secondary);">Latest: $${parseFloat(m.latest.price).toFixed(2)}</div>
+        </div>
+      `).join('');
     }
 
     function updateChartColors() {
