@@ -1226,9 +1226,7 @@
       await renderItems();
       updateStats();
       // Refresh chart with latest history
-      if (chartInstance) {
-        initChart();
-      }
+      initChart();
     }
 
     async function renderItems() {
@@ -1715,10 +1713,6 @@
 
     // ==================== CHART JS ====================
     async function initChart() {
-      if (chartInstance && typeof chartInstance.destroy === 'function') {
-        chartInstance.destroy();
-        chartInstance = null;
-      }
       const ctx = document.getElementById('dashboardChart').getContext('2d');
       const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 
@@ -1726,7 +1720,16 @@
       gradient.addColorStop(0, 'rgba(37, 99, 235, 0.2)');
       gradient.addColorStop(1, 'rgba(37, 99, 235, 0)');
 
-      // Helper: currency symbol from settings
+      // 1. Build real data from items/history
+      const { labels, data } = await processChartData();
+
+      // 2. Destroy old instance if exists
+      if (chartInstance && typeof chartInstance.destroy === 'function') {
+        chartInstance.destroy();
+        chartInstance = null;
+      }
+
+      // Helper: currency symbol
       function getCurrencySymbol() {
         try {
           const el = document.getElementById('currency');
@@ -1735,116 +1738,47 @@
         } catch (_) { return '$'; }
       }
 
-      // Helper: color palette
-      function generateColors(n) {
-        const colors = [];
-        for (let i = 0; i < n; i++) {
-          const hue = Math.round((360 / n) * i);
-          const sat = isDark ? 70 : 65;
-          const light = isDark ? 60 : 50;
-          colors.push(`hsl(${hue}, ${sat}%, ${light}%)`);
-        }
-        return colors;
-      }
-
-      // Build multi-product datasets from persisted history
-      let labels = [];
-      let datasets = [];
-
-      try {
-        const items = await getItems();
-        updateHistoryFromItems(items);
-        const store = getHistoryStore();
-
-        // Build product meta with latest update time
-        const products = items.map(item => {
-          const key = getProductKey(item);
-          const hist = Array.isArray(store[key]) ? store[key] : [];
-          const lastTs = hist.length ? hist[hist.length - 1].ts : (item.lastChecked || item.last_checked || item.addedAt || new Date().toISOString());
-          const name = item.name || item.label || (function () {
-            try { return new URL(item.url).hostname.replace('www.', ''); } catch (_) { return 'Product'; }
-          })();
-          return { key, name, hist };
-        });
-
-        // Choose last 20 by most recent history event
-        const sorted = products.sort((a, b) => {
-          const aTs = (a.hist.length ? a.hist[a.hist.length - 1].ts : '');
-          const bTs = (b.hist.length ? b.hist[b.hist.length - 1].ts : '');
-          return new Date(bTs).getTime() - new Date(aTs).getTime();
-        });
-        const selected = sorted.slice(0, 20);
-
-        // Union of timestamps across selected products
-        const tsSet = new Set();
-        selected.forEach(p => (p.hist || []).forEach(e => { if (e.ts) tsSet.add(e.ts); }));
-        labels = Array.from(tsSet).sort((a, b) => new Date(a) - new Date(b));
-        // Optionally limit total points for readability (keep last 100)
-        if (labels.length > 100) labels = labels.slice(labels.length - 100);
-
-        // For each product, build stepped series by carrying forward last known price
-        const palette = generateColors(selected.length);
-        datasets = selected.map((p, idx) => {
-          const series = [];
-          let cursor = 0;
-          let currentVal = null;
-          const hist = p.hist || [];
-          for (let i = 0; i < labels.length; i++) {
-            const L = labels[i];
-            while (cursor < hist.length && new Date(hist[cursor].ts) <= new Date(L)) {
-              currentVal = parseFloat(hist[cursor].price);
-              cursor++;
-            }
-            series.push(currentVal === null ? null : +currentVal.toFixed(2));
-          }
-          return {
-            label: p.name,
-            data: series,
-            borderColor: palette[idx],
-            backgroundColor: 'transparent',
-            borderWidth: 2,
-            pointRadius: 0,
-            fill: false,
-            tension: 0,
-            stepped: true,
-            spanGaps: true
-          };
-        });
-      } catch (e) {
-        console.log('Using demo chart data');
-        labels = ['T1', 'T2', 'T3', 'T4'];
-        datasets = [{ label: 'Demo Product', data: [120, 120, 118, 115], borderColor: '#2563eb', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 0, fill: false, tension: 0, stepped: true }];
-      }
-
+      // 3. Render Chart (Total Portfolio Value)
       chartInstance = new Chart(ctx, {
         type: 'line',
-        data: { labels, datasets },
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Total Portfolio Value',
+            data: data,
+            borderColor: '#2563eb',
+            backgroundColor: gradient,
+            borderWidth: 3,
+            pointBackgroundColor: '#fff',
+            pointBorderColor: '#2563eb',
+            pointBorderWidth: 2,
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            fill: true,
+            tension: 0.35
+          }]
+        },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
           plugins: {
-            legend: {
-              display: true,
-              labels: { color: isDark ? '#94a3b8' : '#0f172a' }
-            },
+            legend: { display: false },
             tooltip: {
-              mode: 'nearest',
-              intersect: false,
               backgroundColor: isDark ? '#1e293b' : '#fff',
               titleColor: isDark ? '#fff' : '#0f172a',
               bodyColor: isDark ? '#cbd5e1' : '#64748b',
               borderColor: isDark ? '#334155' : '#e2e8f0',
               borderWidth: 1,
-              padding: 10,
-              displayColors: true,
+              padding: 12,
+              displayColors: false,
               callbacks: {
-                title: function (items) {
-                  const t = items[0]?.label || '';
-                  try { return new Date(t).toLocaleString(); } catch (_) { return t; }
-                },
                 label: function (context) {
                   const sym = getCurrencySymbol();
-                  return `${context.dataset.label}: ${sym}${parseFloat(context.parsed.y).toFixed(2)}`;
+                  return sym + parseFloat(context.parsed.y).toFixed(2);
                 }
               }
             }
@@ -1852,10 +1786,13 @@
           scales: {
             x: {
               grid: { display: false },
-              ticks: { color: isDark ? '#94a3b8' : '#64748b' }
+              ticks: {
+                color: isDark ? '#94a3b8' : '#64748b',
+                maxTicksLimit: 7
+              }
             },
             y: {
-              grid: { color: isDark ? '#334155' : '#e2e8f0', borderDash: [4, 4] },
+              grid: { color: isDark ? '#334155' : '#e2e8f0', borderDash: [5, 5] },
               ticks: {
                 color: isDark ? '#94a3b8' : '#64748b',
                 callback: function (value) {
@@ -1952,6 +1889,57 @@
       }
 
       chartInstance.update();
+    }
+
+    // Helper: Process user items into chart data (Total Portfolio Value)
+    async function processChartData() {
+      const items = await getItems();
+
+      // Default demo if no items
+      if (!items || items.length === 0) {
+        const today = new Date();
+        const labels = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(today);
+          d.setDate(d.getDate() - i);
+          labels.push(d.toLocaleDateString('en-US', { weekday: 'short' }));
+        }
+        return { labels, data: [0, 0, 0, 0, 0, 0, 0] };
+      }
+
+      // Ensure history store includes latest changes
+      updateHistoryFromItems(items);
+      const store = getHistoryStore();
+
+      // Last 7 days keys and labels
+      const days = [];
+      const labels = [];
+      const now = new Date();
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        days.push(key);
+        labels.push(d.toLocaleDateString('en-US', { weekday: 'short' }));
+      }
+
+      // For each day, sum last known price per product at or before that day
+      const dataPoints = days.map(dayKey => {
+        let total = 0;
+        Object.values(store).forEach(list => {
+          if (!Array.isArray(list) || list.length === 0) return;
+          // Find last entry at or before the day
+          let val = null;
+          for (let i = list.length - 1; i >= 0; i--) {
+            const tsKey = (list[i].ts || '').slice(0, 10);
+            if (tsKey <= dayKey) { val = parseFloat(list[i].price); break; }
+          }
+          if (val !== null && !isNaN(val)) total += val;
+        });
+        return +total.toFixed(2);
+      });
+
+      return { labels, data: dataPoints };
     }
 
     // Toggle slider fix (pure CSS visual)
