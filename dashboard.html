@@ -875,6 +875,8 @@
       tbody.innerHTML = '';
       mobileList.innerHTML = '';
 
+      console.log('Rendering items:', items.length, items);
+
       if (items.length === 0) {
         emptyState.style.display = 'block';
         tableContainer.style.display = 'none';
@@ -884,15 +886,27 @@
         tableContainer.style.display = 'block';
         
         items.forEach((item, index) => {
+          console.log('Rendering item:', item);
+          
           // Parse Domain from URL
           let domain = 'Unknown';
           try { domain = new URL(item.url).hostname.replace('www.', ''); } catch(e){}
 
           // Format price display with currency
-          const currency = item.currency || '$';
-          const priceDisplay = item.current_price 
-            ? '<strong style="color:var(--success);">' + currency + parseFloat(item.current_price).toFixed(2) + '</strong>' 
-            : '<span style="color:var(--text-secondary);">-</span>';
+          const currency = item.currency || 'USD';
+          const currencySymbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : currency + ' ';
+          
+          let priceDisplay;
+          if (item.current_price !== null && item.current_price !== undefined && item.current_price !== '') {
+            const priceValue = parseFloat(item.current_price);
+            if (!isNaN(priceValue)) {
+              priceDisplay = '<strong style="color:var(--success);">' + currencySymbol + priceValue.toFixed(2) + '</strong>';
+            } else {
+              priceDisplay = '<span style="color:var(--text-secondary);">-</span>';
+            }
+          } else {
+            priceDisplay = '<span style="color:var(--text-secondary);">-</span>';
+          }
 
           // Format last checked date
           const lastChecked = item.last_checked 
@@ -927,7 +941,7 @@
             <td>${alertStatus}</td>
             <td>
               ${priceDisplay}
-              ${item.alert_threshold ? '<br><span style="font-size:0.75rem; color:var(--text-secondary);">Alert: ' + currency + parseFloat(item.alert_threshold).toFixed(2) + '</span>' : ''}
+              ${item.alert_threshold ? '<br><span style="font-size:0.75rem; color:var(--text-secondary);">Alert: ' + currencySymbol + parseFloat(item.alert_threshold).toFixed(2) + '</span>' : ''}
             </td>
             <td><span style="font-size:0.85rem; color:var(--text-secondary);">${lastChecked}</span></td>
             <td style="text-align:right;">
@@ -951,7 +965,7 @@
             <div style="display:flex; gap:0.75rem; flex:1;">
               ${imageHtml}
               <div style="flex:1;">
-                <div style="font-weight:600;">${item.name || item.label || 'Product'}</div>
+                <div style="font-weight:600;">${item.name || item.label || 'Untitled Product'}</div>
                 <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.2rem;">${item.retailer || domain}</div>
                 <div style="margin-top:0.5rem;">${priceDisplay}</div>
               </div>
@@ -1133,8 +1147,11 @@
         }
         
         // Build modal content
-        const currency = product.currency || '$';
-        const currentPrice = product.current_price ? parseFloat(product.current_price).toFixed(2) : 'N/A';
+        const currency = product.currency || 'USD';
+        const currencySymbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : currency + ' ';
+        const currentPrice = (product.current_price !== null && product.current_price !== undefined && product.current_price !== '') 
+          ? parseFloat(product.current_price).toFixed(2) 
+          : 'N/A';
         
         let historyHtml = '';
         if (priceHistory.length > 0) {
@@ -1144,7 +1161,7 @@
             const price = parseFloat(h.price).toFixed(2);
             historyHtml += `<div style=\"display:flex; justify-content:space-between; padding:0.5rem; border-bottom:1px solid var(--border);\">
               <span>${date}</span>
-              <strong>${currency}${price}</strong>
+              <strong>${currencySymbol}${price}</strong>
             </div>`;
           });
           historyHtml += '</div></div>';
@@ -1163,7 +1180,7 @@
             alertsHtml += `<div style=\"padding:0.75rem; background:var(--gray-50); border-radius:6px; margin-bottom:0.5rem;\">
               <div style=\"display:flex; justify-content:space-between; align-items:center;\">
                 <div>
-                  <div style=\"font-weight:600;\">${currency}${oldPrice} → ${currency}${newPrice}</div>
+                  <div style=\"font-weight:600;\">${currencySymbol}${oldPrice} → ${currencySymbol}${newPrice}</div>
                   <div style=\"font-size:0.85rem; color:var(--text-secondary);\">${date}</div>
                 </div>
                 <div style=\"color:${changeColor}; font-weight:700;\">${changePercent}%</div>
@@ -1187,11 +1204,11 @@
           <div style=\"display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:1rem; margin-bottom:1.5rem;\">
             <div style=\"padding:1rem; background:var(--gray-50); border-radius:8px;\">
               <div style=\"font-size:0.85rem; color:var(--text-secondary);\">Current Price</div>
-              <div style=\"font-size:1.5rem; font-weight:700; color:var(--success); margin-top:0.25rem;\">${currency}${currentPrice}</div>
+              <div style=\"font-size:1.5rem; font-weight:700; color:var(--success); margin-top:0.25rem;\">${currencySymbol}${currentPrice}</div>
             </div>
             <div style=\"padding:1rem; background:var(--gray-50); border-radius:8px;\">
               <div style=\"font-size:0.85rem; color:var(--text-secondary);\">Alert Threshold</div>
-              <div style=\"font-size:1.5rem; font-weight:700; margin-top:0.25rem;\">${product.alert_threshold ? currency + parseFloat(product.alert_threshold).toFixed(2) : 'Not Set'}</div>
+              <div style=\"font-size:1.5rem; font-weight:700; margin-top:0.25rem;\">${product.alert_threshold ? currencySymbol + parseFloat(product.alert_threshold).toFixed(2) : 'Not Set'}</div>
             </div>
             <div style=\"padding:1rem; background:var(--gray-50); border-radius:8px;\">
               <div style=\"font-size:0.85rem; color:var(--text-secondary);\">Last Checked</div>
