@@ -1377,8 +1377,8 @@
         <div style="display:flex; gap:1.5rem; margin-bottom:2rem; align-items:flex-start; flex-wrap:wrap;">
           <div style="position:relative;">
             ${(product.imageUrl || product.image_url)
-            ? `<img src="${product.imageUrl || product.image_url}" style="width:110px; height:110px; object-fit:contain; background:white; padding:8px; border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-md);">`
-            : `<div style="width:110px; height:110px; background:var(--gray-100); border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:2.5rem;">📦</div>`
+            ? `<img src="${product.imageUrl || product.image_url}" style="width:110px; height:110px; object-fit:contain; background:var(--bg); padding:8px; border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-md);">`
+            : `<div style="width:110px; height:110px; background:var(--bg); border:1px solid var(--border); border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:2.5rem;">📦</div>`
           }
             <div style="position:absolute; -right:8px; -top:8px; background:${alertEnabled ? 'var(--success)' : 'var(--gray-400)'}; width:24px; height:24px; border-radius:50%; border:3px solid white; display:flex; align-items:center; justify-content:center; font-size:10px; color:white;" title="Alerts ${alertEnabled ? 'Active' : 'Off'}">
               ${alertEnabled ? '🔔' : '✕'}
@@ -1387,29 +1387,29 @@
           
           <div style="flex:1; min-width:200px;">
             <div style="text-transform:uppercase; font-size:0.7rem; font-weight:800; letter-spacing:1px; color:var(--primary); margin-bottom:0.25rem;">${product.retailer || 'External Marketplace'}</div>
-            <h2 style="font-size:1.5rem; font-weight:800; color:var(--dark); line-height:1.2; margin-bottom:0.75rem;">${product.name}</h2>
+            <h2 style="font-size:1.5rem; font-weight:800; color:var(--text); line-height:1.2; margin-bottom:0.75rem;">${product.name}</h2>
             <div style="display:flex; gap:0.75rem; align-items:center;">
-              <span style="font-size:1.75rem; font-weight:800; color:var(--dark);">${currencySymbol}${parseFloat(currentPrice).toFixed(2)}</span>
+              <span style="font-size:1.75rem; font-weight:800; color:var(--text);">${currencySymbol}${parseFloat(currentPrice).toFixed(2)}</span>
               <span style="padding:4px 10px; background:var(--success)15; color:var(--success); border-radius:6px; font-size:0.75rem; font-weight:700;">Live Price</span>
             </div>
           </div>
         </div>
 
         <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:1rem; margin-bottom:2rem;">
-          <div style="background:var(--gray-50); padding:1rem; border-radius:12px; border:1px solid var(--border);">
+          <div style="background:var(--bg); padding:1rem; border-radius:12px; border:1px solid var(--border);">
             <div style="font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; font-weight:700; margin-bottom:0.5rem;">Alert Threshold</div>
             <div style="font-size:1.1rem; font-weight:700;">
               ${product.alert_threshold ? currencySymbol + parseFloat(product.alert_threshold).toFixed(2) : '<span style="color:var(--gray-400)">Not Set</span>'}
             </div>
           </div>
-          <div style="background:var(--gray-50); padding:1rem; border-radius:12px; border:1px solid var(--border);">
+          <div style="background:var(--bg); padding:1rem; border-radius:12px; border:1px solid var(--border);">
             <div style="font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; font-weight:700; margin-bottom:0.5rem;">Last Verified</div>
             <div style="font-size:0.9rem; font-weight:600;">${product.last_checked ? new Date(product.last_checked).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'}</div>
           </div>
         </div>
 
-        <div style="background:white; border:1px solid var(--border); border-radius:12px; overflow:hidden;">
-          <div style="background:var(--gray-50); padding:0.75rem 1.25rem; border-bottom:1px solid var(--border); font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:0.5rem;">
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:12px; overflow:hidden;">
+          <div style="background:var(--card-bg); padding:0.75rem 1.25rem; border-bottom:1px solid var(--border); font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:0.5rem;">
             <span style="color:var(--primary);">📈</span> Recent Price Movements
           </div>
           <div style="padding:0 1.25rem;">
@@ -1430,7 +1430,7 @@
         modalContent.innerHTML = `
       <div style="text-align:center; padding:3rem 1rem;">
         <div style="font-size:3rem; margin-bottom:1rem;">🔍</div>
-        <h3 style="font-weight:800; color:var(--dark);">Connection Issue</h3>
+        <h3 style="font-weight:800; color:var(--text);">Connection Issue</h3>
         <p style="color:var(--text-secondary); margin-bottom:1.5rem;">We couldn't fetch the latest data for this product.</p>
         <button class="btn btn-primary" onclick="closeProductModal()">Close Window</button>
       </div>`;
