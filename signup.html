@@ -824,6 +824,17 @@
       const redirectUri = `${window.location.origin}/tracklet-public/dashboard.html`;
       window.location.href = `${window.Auth.API_URL}/auth/google?redirect_uri=${encodeURIComponent(redirectUri)}`;
     });
+
+    // ==================== AUTOFILL EMAIL FROM URL ====================
+    // Check if email parameter exists in URL and autofill
+    const urlParams = new URLSearchParams(window.location.search);
+    const emailParam = urlParams.get('email');
+    if (emailParam) {
+      emailInput.value = emailParam;
+      emailInput.focus();
+      // Move cursor to end of input
+      emailInput.setSelectionRange(emailParam.length, emailParam.length);
+    }
   </script>
 </body>
 </html>

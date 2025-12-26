@@ -1273,7 +1273,7 @@
           <p class="subheadline">Automatically monitor competitor prices in real-time and receive instant alerts when they drop. Built specifically for Shopify, WooCommerce & dropshipping businesses.</p>
 
           <div style="margin: 3rem 0 2.5rem;">
-            <a href="#cta" class="btn btn-primary" style="padding: 1.15rem 2.5rem; font-size: 1.15rem; margin-right: 1.25rem;">Install Browser Extension</a>
+            <a href="signup.html" class="btn btn-primary" style="padding: 1.15rem 2.5rem; font-size: 1.15rem; margin-right: 1.25rem;">Install Browser Extension</a>
             <a href="#how-it-works" class="btn btn-outline">See How It Works →</a>
           </div>
 
@@ -1806,15 +1806,15 @@
         return;
       }
       
-      // Success feedback and redirect
+      // Success feedback and redirect with email parameter
       const button = ctaForm.querySelector('button');
       const originalText = button.textContent;
-      button.textContent = '✓ Check Your Email!';
+      button.textContent = '✓ Redirecting...';
       button.style.background = '#16a34a';
       
       setTimeout(() => {
-        window.location.href = 'signup.html';
-      }, 1000);
+        window.location.href = `signup.html?email=${encodeURIComponent(email)}`;
+      }, 800);
     });
 
     // ==================== KEYBOARD NAVIGATION ====================
