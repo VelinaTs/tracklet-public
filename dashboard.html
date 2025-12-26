@@ -287,83 +287,35 @@
     window.location.replace(`${window.location.origin}${PROJECT_BASE}/${page}`);
   }
   
-  // Debug logger
-  function log(msg, data = null) {
-    const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
-    const logMsg = `[${timestamp}] ${msg}`;
-    console.log(logMsg, data || '');
-    
-    const debugPanel = document.getElementById('debugPanel');
-    const div = document.createElement('div');
-    div.textContent = logMsg + (data ? ': ' + JSON.stringify(data) : '');
-    debugPanel.appendChild(div);
-    debugPanel.scrollTop = debugPanel.scrollHeight;
-  }
-
-  log('=== DASHBOARD INIT ===');
-  log('Current URL', window.location.href);
-  log('Pathname', window.location.pathname);
-  log('Search params', window.location.search);
-  
   // Cookie-based auth: try to load user; redirect on 401
   loadUserData();
 
   // Fetch user data
   async function loadUserData() {
     try {
-      log('🔄 Fetching user from API...');
-      log('API endpoint', `${API_URL}/auth/me`);
-      
       const response = await fetch(`${API_URL}/auth/me`, {
         method: 'GET',
         credentials: 'include'
       });
 
-      log('Response status', response.status);
-      log('Response OK', response.ok);
-      
-      const headersObj = {};
-      response.headers.forEach((v, k) => headersObj[k] = v);
-      log('Response headers', headersObj);
-
       if (response.ok) {
         const data = await response.json();
         const user = data.user || data;
-        
-        log('✅ User authenticated', user.email);
         
         // Show UI
         document.getElementById('loading').style.display = 'none';
         document.getElementById('nav').style.display = 'block';
         document.getElementById('content').style.display = 'block';
-        log('✅ UI displayed');
         
         document.getElementById('userName').textContent = user.name;
         
         const avatar = document.getElementById('userAvatar');
         avatar.textContent = user.name.charAt(0).toUpperCase();
       } else {
-        log('❌ Auth failed - status ' + response.status);
-        const errorData = await response.json().catch(() => ({}));
-        log('Error response', errorData);
-        
-        // Not authenticated, redirect to login
-        log('➡️ Redirecting to login in 2s...');
-        setTimeout(() => {
-          window.location.href = `${window.location.origin}/tracklet-public/login.html`;
-        }, 2000);
+        window.location.href = `${window.location.origin}/tracklet-public/login.html`;
       }
     } catch (error) {
-      log('❌ EXCEPTION in loadUserData');
-      log('Error name', error.name);
-      log('Error message', error.message);
-      log('Error stack', error.stack);
-      
-      // Network/CORS error - redirect to login
-      log('➡️ Redirecting to login in 3s...');
-      setTimeout(() => {
-        window.location.href = `${window.location.origin}/tracklet-public/login.html`;
-      }, 3000);
+      window.location.href = `${window.location.origin}/tracklet-public/login.html`;
     }
   }
 
@@ -379,9 +331,20 @@
     });
   }
 
-  // Theme
+  // Theme toggle
   const currentTheme = localStorage.getItem('theme') || 'light';
   document.documentElement.setAttribute('data-theme', currentTheme);
+  
+  const themeToggle = document.getElementById('themeToggle');
+  const themeIcon = themeToggle.querySelector('.theme-icon');
+  themeIcon.textContent = currentTheme === 'dark' ? '☀️' : '🌙';
+  
+  themeToggle.addEventListener('click', () => {
+    const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    themeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+  });
 </script>
 </body>
 </html>
