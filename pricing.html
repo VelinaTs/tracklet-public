@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tracklet – Pricing</title>
+  <base href="/tracklet-public/">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-light: #3b82f6;
+      --primary-dark: #1e40af;
+      --primary-darker: #172554;
+      --accent: #8b5cf6;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --dark: #0f172a;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-300: #cbd5e1;
+      --gray-400: #94a3b8;
+      --gray-500: #64748b;
+      --gray-600: #475569;
+      --gray-700: #334155;
+      --gray-800: #1e293b;
+      --gray-900: #0f172a;
+      --bg: var(--gray-50);
+      --bg-secondary: white;
+      --text: var(--gray-900);
+      --text-secondary: var(--gray-600);
+      --border: var(--gray-200);
+      --card-bg: white;
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -2px rgba(0,0,0,0.05);
+      --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.08), 0 8px 10px -6px rgba(0,0,0,0.04);
+    }
+    [data-theme="dark"] {
+      --bg: #0a0f1a;
+      --bg-secondary: #131c2e;
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --border: #1e293b;
+      --card-bg: #151f32;
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+      --shadow-lg: 0 20px 40px rgba(0,0,0,0.5);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    a { color: inherit; text-decoration: none; }
+    nav {
+      position: sticky; top: 0; z-index: 10;
+      background: rgba(248,250,252,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(226,232,240,0.5);
+    }
+    [data-theme="dark"] nav {
+      background: rgba(10,15,26,0.9);
+      border-bottom: 1px solid rgba(30,41,59,0.5);
+    }
+    .nav-container { max-width: 1200px; margin: 0 auto; padding: 1rem 1.5rem; display:flex; align-items:center; justify-content:space-between; }
+    .logo { font-weight: 800; font-size: 1.5rem; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .nav-links { display:flex; gap:1.5rem; font-weight:600; color: var(--text-secondary); }
+    .nav-actions { display:flex; gap:0.75rem; align-items:center; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; padding:0.75rem 1.4rem; border-radius:0.75rem; font-weight:600; gap:0.4rem; border:none; cursor:pointer; transition:transform 0.2s ease, box-shadow 0.2s ease; position:relative; overflow:hidden; }
+    .btn::before { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition:left 0.5s; }
+    .btn:hover::before { left:100%; }
+    .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color:white; box-shadow:0 8px 20px rgba(37,99,235,0.25); }
+    .btn-outline { border:2px solid var(--primary); background:transparent; color:var(--primary); }
+    .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 3rem; }
+    .section-title { text-align:center; font-size: 2.5rem; margin-bottom:0.5rem; }
+    .section-subtitle { text-align:center; color: var(--text-secondary); margin-bottom: 2.5rem; }
+    .toggle-container { display:flex; justify-content:center; margin-bottom:2rem; }
+    .toggle { background: var(--card-bg); border:1px solid var(--border); border-radius:999px; padding:0.3rem; display:inline-flex; gap:0.35rem; box-shadow: var(--shadow-md); }
+    .toggle-btn { border:none; background:transparent; padding:0.55rem 1.25rem; border-radius:999px; cursor:pointer; font-weight:700; color:var(--text-secondary); transition:all 0.2s ease; }
+    .toggle-btn.active { background: var(--primary); color:white; box-shadow:0 6px 16px rgba(37,99,235,0.3); }
+    .save-badge { background: rgba(139,92,246,0.12); color: var(--accent); padding:0.1rem 0.5rem; border-radius:999px; font-size:0.8rem; margin-left:0.35rem; font-weight:700; }
+    .pricing-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:1.5rem; }
+    .price-card { background: var(--card-bg); border:1px solid var(--border); border-radius:16px; padding:1.5rem; box-shadow: var(--shadow-lg); position:relative; }
+    .price-card h3 { font-size:1.2rem; margin-bottom:0.25rem; }
+    .price { font-size:2.2rem; font-weight:800; display:flex; align-items:baseline; gap:0.25rem; margin:0.6rem 0 0.4rem; }
+    .price small { font-size:0.9rem; color: var(--text-secondary); }
+    .subtitle { color: var(--text-secondary); margin-bottom:1rem; }
+    .features-list { display:flex; flex-direction:column; gap:0.45rem; color: var(--text-secondary); font-weight:500; }
+    .check { color: var(--success); margin-right:0.35rem; }
+    .popular { border:2px solid var(--primary); }
+    .popular-badge { position:absolute; top:12px; right:12px; background: var(--primary); color:white; font-weight:800; padding:0.2rem 0.6rem; border-radius:999px; font-size:0.75rem; letter-spacing:0.02em; }
+    footer { text-align:center; padding:2rem 1rem; color: var(--text-secondary); }
+    .note-banner { background: rgba(37,99,235,0.08); color: var(--text); border:1px solid var(--border); border-radius:12px; padding:0.85rem 1rem; margin: 1.5rem auto 0; max-width: 900px; text-align:center; }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="nav-container">
+      <div class="logo">Tracklet</div>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="login.html">Login</a>
+      </div>
+      <div class="nav-actions">
+        <button class="btn btn-outline" id="themeToggle" aria-label="Toggle theme">🌙</button>
+        <a class="btn btn-primary" href="signup.html">Start Free Trial</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <section style="text-align:center; margin-top:3rem; margin-bottom:2rem;">
+      <p class="section-subtitle" style="margin-bottom:0.6rem;">Ready to upgrade?</p>
+      <h1 class="section-title" style="font-size:2.8rem;">Choose the plan that fits</h1>
+      <p class="section-subtitle" style="max-width:700px; margin:0.75rem auto 0;">Billing stays inside your dashboard for security. Review plans here, then upgrade inside your account.</p>
+    </section>
+
+    <section id="pricing">
+      <div class="toggle-container">
+        <div class="toggle">
+          <button class="toggle-btn active" data-period="monthly">Monthly</button>
+          <button class="toggle-btn" data-period="yearly">Yearly <span class="save-badge">Save 20%</span></button>
+        </div>
+      </div>
+
+      <div class="pricing-grid">
+        <div class="price-card" id="starter-card">
+          <h3>Starter</h3>
+          <div class="price" data-monthly="€150" data-yearly="€120"><span data-price>€150</span><small>/month</small></div>
+          <p class="subtitle">Perfect for small stores</p>
+          <div class="features-list">
+            <div><span class="check">✓</span> Track up to 50 products</div>
+            <div><span class="check">✓</span> Daily price checks</div>
+            <div><span class="check">✓</span> Email alerts</div>
+            <div><span class="check">✓</span> Basic dashboard</div>
+            <div><span class="check">✓</span> 14-day free trial</div>
+          </div>
+          <a href="dashboard.html" class="btn btn-primary" style="width:100%; margin-top:1.25rem;">Upgrade in Dashboard</a>
+        </div>
+
+        <div class="price-card popular" id="pro-card">
+          <div class="popular-badge">MOST POPULAR</div>
+          <h3>Professional</h3>
+          <div class="price" data-monthly="€250" data-yearly="€200"><span data-price>€250</span><small>/month</small></div>
+          <p class="subtitle">For growing businesses</p>
+          <div class="features-list">
+            <div><span class="check">✓</span> Track up to 200 products</div>
+            <div><span class="check">✓</span> Real-time price checks (6x daily)</div>
+            <div><span class="check">✓</span> Email + SMS alerts</div>
+            <div><span class="check">✓</span> Advanced analytics</div>
+            <div><span class="check">✓</span> Price history charts</div>
+            <div><span class="check">✓</span> Priority support</div>
+            <div><span class="check">✓</span> 14-day free trial</div>
+          </div>
+          <a href="dashboard.html" class="btn btn-primary" style="width:100%; margin-top:1.25rem; padding:1.05rem;">Upgrade in Dashboard</a>
+        </div>
+
+        <div class="price-card" id="enterprise-card">
+          <h3>Enterprise</h3>
+          <div class="price" data-monthly="€400" data-yearly="€320"><span data-price>€400</span><small>/month</small></div>
+          <p class="subtitle">For serious sellers</p>
+          <div class="features-list">
+            <div><span class="check">✓</span> Unlimited products</div>
+            <div><span class="check">✓</span> Real-time monitoring</div>
+            <div><span class="check">✓</span> Custom integrations</div>
+            <div><span class="check">✓</span> API access</div>
+            <div><span class="check">✓</span> Dedicated account manager</div>
+            <div><span class="check">✓</span> White-label option</div>
+            <div><span class="check">✓</span> 14-day free trial</div>
+          </div>
+          <a href="mailto:hello@tracklet.com" class="btn btn-outline" style="width:100%; margin-top:1.25rem;">Contact Sales</a>
+        </div>
+      </div>
+
+      <div class="note-banner">Billing happens in your dashboard. Ready to upgrade? Open your dashboard to view plans at /pricing.</div>
+    </section>
+  </main>
+
+  <footer>
+    Tracklet © 2025. All rights reserved.
+  </footer>
+
+  <script>
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+      localStorage.setItem('theme', theme);
+    }
+    setTheme(localStorage.getItem('theme') || 'light');
+    themeToggle.addEventListener('click', () => {
+      const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      setTheme(next);
+    });
+
+    // Pricing toggle
+    const toggleBtns = document.querySelectorAll('.toggle-btn');
+    const prices = document.querySelectorAll('[data-price]');
+    toggleBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        toggleBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const period = btn.dataset.period;
+        prices.forEach(price => {
+          const newPrice = price.parentElement.dataset[period];
+          price.textContent = newPrice;
+        });
+      });
+    });
+  </script>
+</body>
+</html>
