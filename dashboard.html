@@ -892,13 +892,16 @@
           let domain = 'Unknown';
           try { domain = new URL(item.url).hostname.replace('www.', ''); } catch(e){}
 
-          // Format price display with currency
+          // Format price display with currency - handle both camelCase and snake_case
           const currency = item.currency || 'USD';
           const currencySymbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : currency + ' ';
           
+          // Check both camelCase (from API) and snake_case (fallback)
+          const currentPrice = item.currentPrice || item.current_price;
+          
           let priceDisplay;
-          if (item.current_price !== null && item.current_price !== undefined && item.current_price !== '') {
-            const priceValue = parseFloat(item.current_price);
+          if (currentPrice !== null && currentPrice !== undefined && currentPrice !== '') {
+            const priceValue = parseFloat(currentPrice);
             if (!isNaN(priceValue)) {
               priceDisplay = '<strong style="color:var(--success);">' + currencySymbol + priceValue.toFixed(2) + '</strong>';
             } else {
@@ -908,19 +911,22 @@
             priceDisplay = '<span style="color:var(--text-secondary);">-</span>';
           }
 
-          // Format last checked date
-          const lastChecked = item.last_checked 
-            ? new Date(item.last_checked).toLocaleDateString()
+          // Format last checked date - handle both formats
+          const lastCheckedTime = item.lastChecked || item.last_checked;
+          const lastChecked = lastCheckedTime 
+            ? new Date(lastCheckedTime).toLocaleDateString()
             : 'Never';
 
-          // Alert status
-          const alertStatus = item.alert_enabled 
+          // Alert status - handle both formats
+          const alertEnabled = item.alertEnabled !== undefined ? item.alertEnabled : item.alert_enabled;
+          const alertStatus = alertEnabled 
             ? `<span class="status-badge status-active"><span class="status-dot"></span> Alert Active</span>`
             : `<span class="status-badge" style="background:var(--gray-100); color:var(--text-secondary);">No Alert</span>`;
 
-          // Product image or placeholder
-          const imageHtml = item.image_url 
-            ? `<img src="${item.image_url}" alt="${item.name}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; margin-right:0.75rem;">`
+          // Product image or placeholder - handle both formats
+          const imageUrl = item.imageUrl || item.image_url;
+          const imageHtml = imageUrl 
+            ? `<img src="${imageUrl}" alt="${item.name}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; margin-right:0.75rem;">`
             : `<div style="width:40px; height:40px; background:var(--gray-200); border-radius:4px; margin-right:0.75rem; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">📦</div>`;
 
           // Desktop Row
@@ -941,7 +947,7 @@
             <td>${alertStatus}</td>
             <td>
               ${priceDisplay}
-              ${item.alert_threshold ? '<br><span style="font-size:0.75rem; color:var(--text-secondary);">Alert: ' + currencySymbol + parseFloat(item.alert_threshold).toFixed(2) + '</span>' : ''}
+              ${(item.alertThreshold || item.alert_threshold) ? '<br><span style="font-size:0.75rem; color:var(--text-secondary);">Alert: ' + currencySymbol + parseFloat(item.alertThreshold || item.alert_threshold).toFixed(2) + '</span>' : ''}
             </td>
             <td><span style="font-size:0.85rem; color:var(--text-secondary);">${lastChecked}</span></td>
             <td style="text-align:right;">
@@ -1149,8 +1155,9 @@
         // Build modal content
         const currency = product.currency || 'USD';
         const currencySymbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : currency + ' ';
-        const currentPrice = (product.current_price !== null && product.current_price !== undefined && product.current_price !== '') 
-          ? parseFloat(product.current_price).toFixed(2) 
+        const productPrice = product.currentPrice || product.current_price;
+        const currentPrice = (productPrice !== null && productPrice !== undefined && productPrice !== '') 
+          ? parseFloat(productPrice).toFixed(2) 
           : 'N/A';
         
         let historyHtml = '';
@@ -1193,7 +1200,7 @@
         
         modalContent.innerHTML = `
           <div style=\"display:flex; gap:1.5rem; margin-bottom:1.5rem;\">
-            ${product.image_url ? `<img src=\"${product.image_url}\" alt=\"${product.name}\" style=\"width:120px; height:120px; object-fit:cover; border-radius:8px;\">` : '<div style=\"width:120px; height:120px; background:var(--gray-200); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:3rem;\">📦</div>'}
+            ${(product.imageUrl || product.image_url) ? `<img src=\"${product.imageUrl || product.image_url}\" alt=\"${product.name}\" style=\"width:120px; height:120px; object-fit:cover; border-radius:8px;\">` : '<div style=\"width:120px; height:120px; background:var(--gray-200); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:3rem;\">📦</div>'}
             <div style=\"flex:1;\">
               <h2 style=\"margin-bottom:0.5rem;\">${product.name || 'Product Details'}</h2>
               <p style=\"color:var(--text-secondary); margin-bottom:0.5rem;\">${product.retailer || 'Unknown Retailer'}</p>
@@ -1266,7 +1273,8 @@
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
       
       items.forEach(item => {
-        if (item.last_checked && new Date(item.last_checked) > oneDayAgo) {
+        const lastChecked = item.lastChecked || item.last_checked;
+        if (lastChecked && new Date(lastChecked) > oneDayAgo) {
           // Check if there's a recent alert or price change
           recentChanges++;
         }
@@ -1382,11 +1390,13 @@
           
           // Aggregate prices
           items.forEach(item => {
-            if (item.current_price) {
-              const itemDate = item.last_checked ? new Date(item.last_checked) : new Date();
+            const price = item.currentPrice || item.current_price;
+            if (price) {
+              const lastChecked = item.lastChecked || item.last_checked;
+              const itemDate = lastChecked ? new Date(lastChecked) : new Date();
               const dayStr = itemDate.toLocaleDateString('en-US', { weekday: 'short' });
               if (pricesByDay[dayStr]) {
-                pricesByDay[dayStr].total += parseFloat(item.current_price);
+                pricesByDay[dayStr].total += parseFloat(price);
                 pricesByDay[dayStr].count += 1;
               }
             }
