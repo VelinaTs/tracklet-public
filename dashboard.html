@@ -936,21 +936,11 @@
                   <div style="font-size:0.9rem; color:var(--text-secondary);">Get alerts when prices drop via browser notification</div>
                 </div>
                 <label class="switch">
-                  <input type="checkbox" id="notificationsToggle">
+                  <input type="checkbox" id="notificationsToggle" style="display:none;">
                   <span
                     style="display:inline-block; width:44px; height:24px; background:var(--gray-300); border-radius:99px; position:relative; transition:0.2s; cursor:pointer;"
                     class="slider"></span>
                 </label>
-              </div>
-
-              <div style="display:flex; align-items:center; justify-content:space-between;">
-                <div>
-                  <div style="font-weight:600;">Check Frequency</div>
-                  <div style="font-size:0.9rem; color:var(--text-secondary);">How often we scan for changes</div>
-                </div>
-                <div
-                  style="padding:0.5rem 1rem; background:var(--gray-100); border-radius:6px; font-weight:500; color:var(--text);"
-                  id="frequencyDisplay">Every 30 minutes</div>
               </div>
 
               <div style="display:flex; align-items:center; justify-content:space-between;">
@@ -1996,8 +1986,12 @@
               ticks: {
                 color: textColor,
                 font: { family: "'Inter', sans-serif", size: 11 },
-                maxTicksLimit: rangeDays === 30 ? 6 : 7,
-                maxRotation: 0
+                autoSkip: false,
+                maxRotation: 0,
+                callback: function(value, index, values) {
+                  // Show all labels for 30d, all for 7d
+                  return this.getLabelForValue ? this.getLabelForValue(value) : value;
+                }
               },
               border: { display: false }
             },
@@ -2044,117 +2038,116 @@
         initChart();
     }
 
-    // Data Processor: Portfolio
+    // Unified Data Processor: Portfolio (7/30 days, robust labels)
     async function processChartData(rangeDays = 7) {
       const items = await getItems();
-      // Ensure history is up to date
       updateHistoryFromItems(items);
       const store = getHistoryStore();
-
-      const labels = [];
-      const data = [];
       const now = new Date();
-
-      // Generate dates backwards from today
+      const labels = [];
+      const days = [];
       for (let i = rangeDays - 1; i >= 0; i--) {
         const d = new Date(now);
         d.setDate(d.getDate() - i);
-        const dayKey = d.toISOString().slice(0, 10);
-        
-        // Format label (e.g., "Mon 24")
+        days.push(d.toISOString().slice(0, 10));
+        // Format: "Mon 24" for 7/30d, else ISO
         labels.push(d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' }));
-
-        // Sum prices active on this day
-        let dailyTotal = 0;
-        
-        // For each item, find its price on this specific day
-        items.forEach(item => {
-            const key = getProductKey(item);
-            const history = store[key] || [];
-            
-            // Find the last price record before or on this day
-            // If no record exists before this day, we assume the item wasn't tracked yet (0)
-            // Or we can assume it was the first price found (backfilling). 
-            // Let's use backfilling to prevent graph from looking like 0 -> 1000 jumps.
-            
-            let priceAtDay = null;
-            
-            // 1. Try to find exact or previous price
-            const relevant = history.filter(h => (h.ts || '').slice(0,10) <= dayKey);
-            if (relevant.length > 0) {
-                priceAtDay = parseFloat(relevant[relevant.length - 1].price);
-            } else if (history.length > 0) {
-                // 2. Fallback: If the item exists now, but history starts AFTER this day,
-                // do we show 0 or the first known price? 
-                // Showing 0 is more accurate for "Portfolio Value over time".
-                priceAtDay = 0; 
-            }
-
-            if (priceAtDay !== null && !isNaN(priceAtDay)) {
-                dailyTotal += priceAtDay;
-            }
-        });
-        
-        data.push(dailyTotal);
       }
-
+      // For each day, sum last known price per product at or before that day
+      const data = days.map(dayKey => {
+        let total = 0;
+        Object.values(store).forEach(list => {
+          if (!Array.isArray(list) || list.length === 0) return;
+          // Find last entry at or before the day
+          let val = null;
+          for (let i = list.length - 1; i >= 0; i--) {
+            const tsKey = (list[i].ts || '').slice(0, 10);
+            if (tsKey <= dayKey) { val = parseFloat(list[i].price); break; }
+          }
+          if (val !== null && !isNaN(val)) total += val;
+        });
+        return +total.toFixed(2);
+      });
       return { labels, data };
     }
 
-    // Data Processor: Per Product
+    // Unified Data Processor: Per Product (7/30 days, robust labels)
     async function buildPerProductChartData(rangeDays = 7) {
       const items = await getItems();
       updateHistoryFromItems(items);
       const store = getHistoryStore();
       const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-
-      // Sort items by most recent activity/price change for relevance
+      // Sort by most recent event, limit to 10 for clarity
       const products = items.map(item => {
-          const key = getProductKey(item);
-          return {
-              key,
-              name: item.name || item.label || 'Product',
-              history: store[key] || []
-          };
-      }).slice(0, 10); // Limit to top 10 to prevent clutter
-
-      // Generate Dates
-      const labels = [];
-      const dateKeys = [];
+        const key = getProductKey(item);
+        const hist = Array.isArray(store[key]) ? store[key] : [];
+        return { key, name: item.name || item.label || (function(){ try{ return new URL(item.url).hostname.replace('www.', ''); } catch(_) { return 'Product'; } })(), hist };
+      }).sort((a, b) => {
+        const aTs = (a.hist.length ? a.hist[a.hist.length - 1].ts : '');
+        const bTs = (b.hist.length ? b.hist[b.hist.length - 1].ts : '');
+        return new Date(bTs).getTime() - new Date(aTs).getTime();
+      }).slice(0, 10);
+      // Build day keys and labels
       const now = new Date();
+      const dayKeys = [];
+      const labels = [];
       for (let i = rangeDays - 1; i >= 0; i--) {
-          const d = new Date(now);
-          d.setDate(d.getDate() - i);
-          dateKeys.push(d.toISOString().slice(0, 10));
-          labels.push(d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' }));
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        dayKeys.push(d.toISOString().slice(0, 10));
+        labels.push(d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' }));
       }
-
-      // Generate Colors
-      const datasets = products.map((prod, index) => {
-          // HSL color generation for distinctness
-          const hue = (index * 137.508) % 360; // Golden angle approx
-          const color = `hsl(${hue}, ${isDark ? 70 : 60}%, ${isDark ? 60 : 50}%)`;
-
-          const data = dateKeys.map(dayKey => {
-              const relevant = prod.history.filter(h => (h.ts || '').slice(0,10) <= dayKey);
-              if (relevant.length === 0) return null; // Gap if not tracked yet
-              return parseFloat(relevant[relevant.length - 1].price);
-          });
-
-          return {
-              label: prod.name.length > 15 ? prod.name.substring(0, 12) + '...' : prod.name,
-              data: data,
-              borderColor: color,
-              backgroundColor: 'transparent',
-              borderWidth: 2,
-              pointRadius: 0,
-              pointHoverRadius: 4,
-              stepped: 'middle', // Square lines are better for price changes
-              tension: 0,
-              spanGaps: true
-          };
+      // Color palette
+      function generateColors(n) {
+        const colors = [];
+        for (let i = 0; i < n; i++) {
+          const hue = Math.round((360 / n) * i);
+          const sat = isDark ? 70 : 65;
+          const light = isDark ? 60 : 50;
+          colors.push(`hsl(${hue}, ${sat}%, ${light}%)`);
+        }
+        return colors;
+      }
+      const palette = generateColors(products.length);
+      // Build datasets
+      const datasets = products.map((p, idx) => {
+        const series = dayKeys.map(k => {
+          // Find last event at or before day k
+          let val = null;
+          for (let i = (p.hist || []).length - 1; i >= 0; i--) {
+            const tsKey = (p.hist[i].ts || '').slice(0, 10);
+            if (tsKey <= k) { val = parseFloat(p.hist[i].price); break; }
+          }
+          return val === null || isNaN(val) ? null : +val.toFixed(2);
+        });
+        // Carry forward values for stepped look
+        for (let i = 0; i < series.length; i++) {
+          if (series[i] === null) series[i] = i > 0 ? series[i - 1] : null;
+        }
+        // Add dots for first price event of every product
+        let pointRadius = new Array(series.length).fill(0);
+        // Find first non-null value for this product's series
+        for (let i = 0; i < series.length; i++) {
+          if (series[i] !== null && (i === 0 || series[i - 1] === null)) {
+            pointRadius[i] = 5;
+            // Do not break; allow every product's first event to have a dot
+            // (This loop is per product, so this is correct)
+            break;
+          }
+        }
+        return {
+          label: p.name.length > 15 ? p.name.substring(0, 12) + '...' : p.name,
+          data: series,
+          borderColor: palette[idx],
+          backgroundColor: 'transparent',
+          borderWidth: 2,
+          pointRadius: pointRadius,
+          pointHoverRadius: 4,
+          stepped: 'middle',
+          tension: 0,
+          spanGaps: true
+        };
       });
-
       return { labels, datasets };
     }
     // ==================== ANALYTICS VIEW ====================
@@ -2242,134 +2235,6 @@
       chartInstance.update();
     }
 
-    // Helper: Process user items into chart data (Total Portfolio Value)
-    async function processChartData(rangeDays = 7) {
-      const items = await getItems();
-
-      // Default demo if no items
-      if (!items || items.length === 0) {
-        const today = new Date();
-        const labels = [];
-        for (let i = rangeDays - 1; i >= 0; i--) {
-          const d = new Date(today);
-          d.setDate(d.getDate() - i);
-          labels.push(d.toLocaleDateString('en-US', { weekday: 'short' }));
-        }
-        return { labels, data: Array(rangeDays).fill(0) };
-      }
-
-      // Ensure history store includes latest changes
-      updateHistoryFromItems(items);
-      const store = getHistoryStore();
-
-      // Last 7 days keys and labels
-      const days = [];
-      const labels = [];
-      const now = new Date();
-      for (let i = rangeDays - 1; i >= 0; i--) {
-        const d = new Date(now);
-        d.setDate(d.getDate() - i);
-        const key = d.toISOString().slice(0, 10);
-        days.push(key);
-        labels.push(d.toLocaleDateString('en-US', { weekday: 'short' }));
-      }
-
-      // For each day, sum last known price per product at or before that day
-      const dataPoints = days.map(dayKey => {
-        let total = 0;
-        Object.values(store).forEach(list => {
-          if (!Array.isArray(list) || list.length === 0) return;
-          // Find last entry at or before the day
-          let val = null;
-          for (let i = list.length - 1; i >= 0; i--) {
-            const tsKey = (list[i].ts || '').slice(0, 10);
-            if (tsKey <= dayKey) { val = parseFloat(list[i].price); break; }
-          }
-          if (val !== null && !isNaN(val)) total += val;
-        });
-        return +total.toFixed(2);
-      });
-
-      return { labels, data: dataPoints };
-    }
-
-    // Build per-product datasets (last N days, limit last 20 products)
-    async function buildPerProductChartData(rangeDays = 7) {
-      const items = await getItems();
-      updateHistoryFromItems(items);
-      const store = getHistoryStore();
-
-      // Helper: palette
-      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-      function generateColors(n) {
-        const colors = [];
-        for (let i = 0; i < n; i++) {
-          const hue = Math.round((360 / n) * i);
-          const sat = isDark ? 70 : 65;
-          const light = isDark ? 60 : 50;
-          colors.push(`hsl(${hue}, ${sat}%, ${light}%)`);
-        }
-        return colors;
-      }
-
-      // Build product meta
-      const products = items.map(item => {
-        const key = getProductKey(item);
-        const hist = Array.isArray(store[key]) ? store[key] : [];
-        return { key, name: item.name || item.label || (function(){ try{ return new URL(item.url).hostname.replace('www.', ''); } catch(_) { return 'Product'; } })(), hist };
-      });
-
-      // Sort by most recent event and take last 20
-      const sorted = products.sort((a, b) => {
-        const aTs = (a.hist.length ? a.hist[a.hist.length - 1].ts : '');
-        const bTs = (b.hist.length ? b.hist[b.hist.length - 1].ts : '');
-        return new Date(bTs).getTime() - new Date(aTs).getTime();
-      });
-      const selected = sorted.slice(0, 20);
-
-      // Build day keys within range
-      const today = new Date();
-      const dayKeys = [];
-      for (let i = rangeDays - 1; i >= 0; i--) {
-        const d = new Date(today);
-        d.setDate(d.getDate() - i);
-        dayKeys.push(d.toISOString().slice(0, 10));
-      }
-
-      // Labels as actual ISO timestamps per day for consistent tooltip title
-      const labels = dayKeys.map(k => new Date(k).toISOString());
-      const palette = generateColors(selected.length);
-
-      const datasets = selected.map((p, idx) => {
-        const series = dayKeys.map(k => {
-          // Find last event at or before day k
-          let val = null;
-          for (let i = (p.hist || []).length - 1; i >= 0; i--) {
-            const tsKey = (p.hist[i].ts || '').slice(0, 10);
-            if (tsKey <= k) { val = parseFloat(p.hist[i].price); break; }
-          }
-          return val === null || isNaN(val) ? null : +val.toFixed(2);
-        });
-        // Carry forward values to create stepped look
-        for (let i = 0; i < series.length; i++) {
-          if (series[i] === null) series[i] = i > 0 ? series[i - 1] : null;
-        }
-        return {
-          label: p.name,
-          data: series,
-          borderColor: palette[idx],
-          backgroundColor: 'transparent',
-          borderWidth: 2,
-          pointRadius: 0,
-          fill: false,
-          tension: 0,
-          stepped: true,
-          spanGaps: true
-        };
-      });
-
-      return { labels, datasets };
-    }
 
     // Toggle slider fix (pure CSS visual)
     document.querySelector('.switch input').addEventListener('change', function () {
