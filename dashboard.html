@@ -837,6 +837,7 @@
                 <select id="chartRangeSelect" class="chart-select">
                   <option value="7">Last 7 Days</option>
                   <option value="30">Last 30 Days</option>
+                  <option value="year">Yearly (12 Months)</option>
                 </select>
               </div>
             </div>
@@ -1884,20 +1885,16 @@
 
       // 1. Prepare Data
       const mode = (localStorage.getItem(STORAGE_KEY_CHART_MODE) || 'portfolio');
-      const rangeDays = parseInt(localStorage.getItem(STORAGE_KEY_CHART_RANGE) || '7', 10);
-      
+      let rangeVal = localStorage.getItem(STORAGE_KEY_CHART_RANGE) || '7';
       let chartData = {};
-      
       if (mode === 'perProduct') {
-        chartData = await buildPerProductChartData(rangeDays);
+        chartData = await buildPerProductChartData(rangeVal);
       } else {
-        const processed = await processChartData(rangeDays);
-        
+        const processed = await processChartData(rangeVal);
         // Create Gradient
         const gradient = ctx.createLinearGradient(0, 0, 0, 300);
         gradient.addColorStop(0, hexToRgba(primaryColor, 0.25));
         gradient.addColorStop(1, hexToRgba(primaryColor, 0.0));
-
         chartData = {
           labels: processed.labels,
           datasets: [{
@@ -2039,40 +2036,66 @@
     }
 
     // Unified Data Processor: Portfolio (7/30 days, robust labels)
-    async function processChartData(rangeDays = 7) {
+    async function processChartData(range = 7) {
       const items = await getItems();
       updateHistoryFromItems(items);
       const store = getHistoryStore();
       const now = new Date();
-      const labels = [];
-      const days = [];
-      for (let i = rangeDays - 1; i >= 0; i--) {
-        const d = new Date(now);
-        d.setDate(d.getDate() - i);
-        days.push(d.toISOString().slice(0, 10));
-        // Format: "Mon 24" for 7/30d, else ISO
-        labels.push(d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' }));
+      let labels = [];
+      let keys = [];
+      let isYear = range === 'year';
+      if (isYear) {
+        // 12 months, Jan to Dec, this year
+        const year = now.getFullYear();
+        for (let m = 0; m < 12; m++) {
+          const d = new Date(year, m, 1);
+          keys.push(d.toISOString().slice(0, 7)); // YYYY-MM
+          labels.push(d.toLocaleDateString('en-US', { month: 'short' }));
+        }
+      } else {
+        const rangeDays = parseInt(range, 10);
+        for (let i = rangeDays - 1; i >= 0; i--) {
+          const d = new Date(now);
+          d.setDate(d.getDate() - i);
+          keys.push(d.toISOString().slice(0, 10));
+          labels.push(d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' }));
+        }
       }
-      // For each day, sum last known price per product at or before that day
-      const data = days.map(dayKey => {
-        let total = 0;
-        Object.values(store).forEach(list => {
-          if (!Array.isArray(list) || list.length === 0) return;
-          // Find last entry at or before the day
-          let val = null;
-          for (let i = list.length - 1; i >= 0; i--) {
-            const tsKey = (list[i].ts || '').slice(0, 10);
-            if (tsKey <= dayKey) { val = parseFloat(list[i].price); break; }
-          }
-          if (val !== null && !isNaN(val)) total += val;
-        });
-        return +total.toFixed(2);
+      // For each key (day or month), sum last known price per product at or before that period
+      const data = keys.map(key => {
+        if (isYear) {
+          // Average for the month: for each product, average all price events in that month
+          let total = 0;
+          let count = 0;
+          Object.values(store).forEach(list => {
+            if (!Array.isArray(list) || list.length === 0) return;
+            // Get all price events in this month
+            const monthPrices = list.filter(h => (h.ts || '').slice(0, 7) === key).map(h => parseFloat(h.price)).filter(v => !isNaN(v));
+            if (monthPrices.length > 0) {
+              total += monthPrices.reduce((a, b) => a + b, 0) / monthPrices.length;
+              count++;
+            }
+          });
+          return count > 0 ? +(total / count).toFixed(2) : 0;
+        } else {
+          let total = 0;
+          Object.values(store).forEach(list => {
+            if (!Array.isArray(list) || list.length === 0) return;
+            let val = null;
+            for (let i = list.length - 1; i >= 0; i--) {
+              const tsKey = (list[i].ts || '').slice(0, 10);
+              if (tsKey <= key) { val = parseFloat(list[i].price); break; }
+            }
+            if (val !== null && !isNaN(val)) total += val;
+          });
+          return +total.toFixed(2);
+        }
       });
       return { labels, data };
     }
 
     // Unified Data Processor: Per Product (7/30 days, robust labels)
-    async function buildPerProductChartData(rangeDays = 7) {
+    async function buildPerProductChartData(range = 7) {
       const items = await getItems();
       updateHistoryFromItems(items);
       const store = getHistoryStore();
@@ -2087,15 +2110,26 @@
         const bTs = (b.hist.length ? b.hist[b.hist.length - 1].ts : '');
         return new Date(bTs).getTime() - new Date(aTs).getTime();
       }).slice(0, 10);
-      // Build day keys and labels
+      // Build keys and labels
       const now = new Date();
-      const dayKeys = [];
-      const labels = [];
-      for (let i = rangeDays - 1; i >= 0; i--) {
-        const d = new Date(now);
-        d.setDate(d.getDate() - i);
-        dayKeys.push(d.toISOString().slice(0, 10));
-        labels.push(d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' }));
+      let keys = [];
+      let labels = [];
+      let isYear = range === 'year';
+      if (isYear) {
+        const year = now.getFullYear();
+        for (let m = 0; m < 12; m++) {
+          const d = new Date(year, m, 1);
+          keys.push(d.toISOString().slice(0, 7));
+          labels.push(d.toLocaleDateString('en-US', { month: 'short' }));
+        }
+      } else {
+        const rangeDays = parseInt(range, 10);
+        for (let i = rangeDays - 1; i >= 0; i--) {
+          const d = new Date(now);
+          d.setDate(d.getDate() - i);
+          keys.push(d.toISOString().slice(0, 10));
+          labels.push(d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' }));
+        }
       }
       // Color palette
       function generateColors(n) {
@@ -2111,14 +2145,23 @@
       const palette = generateColors(products.length);
       // Build datasets
       const datasets = products.map((p, idx) => {
-        const series = dayKeys.map(k => {
-          // Find last event at or before day k
-          let val = null;
-          for (let i = (p.hist || []).length - 1; i >= 0; i--) {
-            const tsKey = (p.hist[i].ts || '').slice(0, 10);
-            if (tsKey <= k) { val = parseFloat(p.hist[i].price); break; }
+        const series = keys.map(k => {
+          if (isYear) {
+            // Average for the month for this product
+            const monthPrices = (p.hist || []).filter(h => (h.ts || '').slice(0, 7) === k).map(h => parseFloat(h.price)).filter(v => !isNaN(v));
+            if (monthPrices.length > 0) {
+              return +(monthPrices.reduce((a, b) => a + b, 0) / monthPrices.length).toFixed(2);
+            } else {
+              return null;
+            }
+          } else {
+            let val = null;
+            for (let i = (p.hist || []).length - 1; i >= 0; i--) {
+              const tsKey = (p.hist[i].ts || '').slice(0, 10);
+              if (tsKey <= k) { val = parseFloat(p.hist[i].price); break; }
+            }
+            return val === null || isNaN(val) ? null : +val.toFixed(2);
           }
-          return val === null || isNaN(val) ? null : +val.toFixed(2);
         });
         // Carry forward values for stepped look
         for (let i = 0; i < series.length; i++) {
@@ -2126,12 +2169,9 @@
         }
         // Add dots for first price event of every product
         let pointRadius = new Array(series.length).fill(0);
-        // Find first non-null value for this product's series
         for (let i = 0; i < series.length; i++) {
           if (series[i] !== null && (i === 0 || series[i - 1] === null)) {
             pointRadius[i] = 5;
-            // Do not break; allow every product's first event to have a dot
-            // (This loop is per product, so this is correct)
             break;
           }
         }
