@@ -906,6 +906,27 @@
     const FETCH_TIMEOUT_MS = 6000;
     let fetchWarningShown = false;
 
+    function isBlockedDomain(url) {
+      try {
+        const host = new URL(url).hostname.toLowerCase();
+        return host.includes('alibaba') || host.includes('aliexpress');
+      } catch (_) { return false; }
+    }
+
+    function isTrialEnded(user) {
+      if (!user) return false;
+      // Explicit status flag
+      if ((user.subscriptionStatus || '').toUpperCase() === 'TRIAL_ENDED') return true;
+      // Fallback: trial tier with past end date
+      const tier = user.subscriptionTier || user.subscription_tier;
+      const ends = user.trialEndsAt || user.trial_ends_at;
+      if (tier === 'trial' && ends) {
+        const trialEnds = new Date(ends);
+        return trialEnds.getTime() < Date.now();
+      }
+      return false;
+    }
+
     // UI References
     const sidebar = document.getElementById('sidebar');
     const loading = document.getElementById('loading');
@@ -1236,8 +1257,20 @@
       const url = urlIn.value.trim();
       const label = labelIn.value.trim();
 
+      // Block unsupported domains
+      if (isBlockedDomain(url)) {
+        showToast('Coming soon for this website.', 'error');
+        return;
+      }
+
       if (!url) {
         showToast('Please enter a valid URL', 'error');
+        return;
+      }
+
+      // Stop scraping if trial ended
+      if (isTrialEnded(currentUser)) {
+        showToast('Trial ended. Scraping disabled. Please upgrade.', 'error');
         return;
       }
 
@@ -1361,6 +1394,21 @@
     window.viewProductDetails = async function (productId) {
       const modal = document.getElementById('productModal');
       const modalContent = document.getElementById('modalContent');
+
+      // If domain is blocked (Alibaba/AliExpress), show coming-soon and exit
+      const cached = cachedItems.find(i => i.id === productId) || {};
+      if (cached.url && isBlockedDomain(cached.url)) {
+        modal.style.display = 'flex';
+        modalContent.innerHTML = `
+      <div style="text-align:center; padding:3rem 1rem;">
+        <div style="font-size:3rem; margin-bottom:1rem;">⌛</div>
+        <h3 style="font-weight:800; color:var(--text);">Coming Soon</h3>
+        <p style="color:var(--text-secondary); margin-bottom:1.5rem;">Details for this store are not available yet.</p>
+        <button class="btn btn-primary" onclick="closeProductModal()">Close Window</button>
+      </div>`;
+        showToast('Coming soon for this website.', 'error');
+        return;
+      }
 
       // 1. Initial Loading State (Centered Spinner)
       modal.style.display = 'flex';
