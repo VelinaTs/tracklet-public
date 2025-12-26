@@ -1058,8 +1058,14 @@
 
         if (response.ok) {
           const data = await response.json();
-          // Handle different response structures
-          cachedItems = Array.isArray(data) ? data : (data.products || data.data || []);
+          // Handle different response structures - ensure we always get an array
+          let items = Array.isArray(data) ? data : (data.products || data.data || data.items || []);
+          // If still not an array, return empty array
+          if (!Array.isArray(items)) {
+            console.warn('API returned non-array items:', items);
+            items = [];
+          }
+          cachedItems = items;
           console.log('Fetched products:', cachedItems.length, 'First product:', cachedItems[0]);
           return cachedItems;
         } else {
@@ -1252,13 +1258,18 @@
               const scrapeData = await scrapeResponse.json();
               price = scrapeData.price || null;
             }
+            // Silently ignore 404 or other errors - the /api/scrape endpoint may not exist
           } catch (scrapeError) {
-            console.warn('Scraping failed, continuing without price:', scrapeError);
+            console.warn('Scraping API not available, continuing without price:', scrapeError);
           }
         }
 
         // Add item with or without price
-        const items = getItems();
+        let items = getItems() || [];
+        // Ensure items is an array
+        if (!Array.isArray(items)) {
+          items = [];
+        }
         items.push({
           url,
           label,
@@ -1286,7 +1297,11 @@
         showToast('Could not get price. Item added without price.', 'error');
 
         // Add item without price on error
-        const items = getItems();
+        let items = getItems() || [];
+        // Ensure items is an array
+        if (!Array.isArray(items)) {
+          items = [];
+        }
         items.push({
           url,
           label,
