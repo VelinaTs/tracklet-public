@@ -1719,6 +1719,33 @@
       window.location.href = 'login.html';
     });
 
+    // Modal Close Helpers
+    window.closeProductModal = function () {
+      const modal = document.getElementById('productModal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    };
+
+    // Close modal on backdrop click and ESC key
+    (function attachModalCloseHandlers() {
+      const modal = document.getElementById('productModal');
+      if (modal) {
+        // Backdrop click closes modal (only when clicking outside the content)
+        modal.addEventListener('click', function (e) {
+          if (e.target === modal) {
+            window.closeProductModal();
+          }
+        });
+      }
+      // ESC key closes modal
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          window.closeProductModal();
+        }
+      });
+    })();
+
     // Start
     initApp();
 
