@@ -20,6 +20,7 @@
 
     // If not found in cookies, try common CSRF endpoints and read JSON payload if present
     if (!token) {
+      // Try common CSRF endpoints first
       const endpoints = ['/auth/csrf', '/csrf', '/csrf-token', '/api/csrf'];
       for (const ep of endpoints) {
         try {
@@ -37,6 +38,23 @@
           if (token) break;
         } catch (e) {
           // continue
+        }
+      }
+    }
+
+    // Still no token? Probe safe GET endpoints to prime a readable CSRF cookie if server uses double-submit pattern
+    if (!token) {
+      const primingEndpoints = ['/', '/auth/me', '/'];
+      for (const ep of primingEndpoints) {
+        try {
+          await fetch(`${API_URL}${ep}`, { credentials: 'include' });
+          for (const name of cookieNames) {
+            token = getCookie(name);
+            if (token) break;
+          }
+          if (token) break;
+        } catch (e) {
+          // ignore and continue
         }
       }
     }
