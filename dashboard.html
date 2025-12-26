@@ -1086,8 +1086,62 @@
     // ==================== DATA & STORAGE ====================
     const STORAGE_KEY_ITEMS = 'tracklet_items_v2';
     const STORAGE_KEY_SETTINGS = 'tracklet_settings_v2';
+    const STORAGE_KEY_HISTORY = 'tracklet_price_history_v1';
     let currentUser = null; // Store user data globally
     let cachedItems = []; // Cache for items
+
+    // Price History Persistence
+    function getHistoryStore() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY_HISTORY)) || {};
+      } catch (_) {
+        return {};
+      }
+    }
+
+    function saveHistoryStore(store) {
+      try {
+        localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(store));
+      } catch (_) { }
+    }
+
+    function getProductKey(item) {
+      // Prefer stable backend id; fallback to URL or label
+      return (item.id || item.product_id || item.url || item.label || 'unknown').toString();
+    }
+
+    function recordPriceEvent(item, price, timestamp) {
+      if (price === null || price === undefined || price === '') return;
+      const p = parseFloat(price);
+      if (isNaN(p)) return;
+
+      const key = getProductKey(item);
+      const store = getHistoryStore();
+      const list = Array.isArray(store[key]) ? store[key] : [];
+
+      const ts = timestamp ? new Date(timestamp).toISOString() : new Date().toISOString();
+      const last = list[list.length - 1];
+      // Only append when price actually changes or first entry
+      if (!last || parseFloat(last.price) !== p) {
+        list.push({ ts, price: p });
+        store[key] = list.slice(-100); // cap history per product
+        saveHistoryStore(store);
+      }
+    }
+
+    function updateHistoryFromItems(items) {
+      const now = new Date();
+      items.forEach(item => {
+        const price = item.currentPrice || item.current_price || item.price;
+        const prev = item.previousPrice || item.previous_price;
+        const lastChecked = item.lastChecked || item.last_checked || now.toISOString();
+        // Record previous then current to reflect change
+        if (prev !== undefined && prev !== null && prev !== '') {
+          recordPriceEvent(item, prev, new Date(new Date(lastChecked).getTime() - 1));
+        }
+        recordPriceEvent(item, price, lastChecked);
+      });
+    }
 
     async function getItems() {
       // Try to fetch from backend first
@@ -1133,10 +1187,16 @@
       // Save to localStorage as backup
       localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items));
       cachedItems = items;
+      // Update price history persistence
+      updateHistoryFromItems(items);
 
       // Refresh display
       await renderItems();
       updateStats();
+      // Refresh chart with latest history
+      if (chartInstance) {
+        initChart();
+      }
     }
 
     async function renderItems() {
@@ -1621,6 +1681,10 @@
 
     // ==================== CHART JS ====================
     async function initChart() {
+      if (chartInstance && typeof chartInstance.destroy === 'function') {
+        chartInstance.destroy();
+        chartInstance = null;
+      }
       const ctx = document.getElementById('dashboardChart').getContext('2d');
       const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 
@@ -1628,53 +1692,55 @@
       gradient.addColorStop(0, 'rgba(37, 99, 235, 0.2)');
       gradient.addColorStop(1, 'rgba(37, 99, 235, 0)');
 
-      // Try to fetch real price trend data
-      let labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-      let data = [120, 118, 118, 115, 112, 112, 110];
+      // Build trend from persisted history (remembers across sessions)
+      let labels = [];
+      let data = [];
 
       try {
         const items = await getItems();
-        if (items.length > 0) {
-          // Calculate average prices over last 7 days
-          const pricesByDay = {};
-          const today = new Date();
+        updateHistoryFromItems(items);
 
-          // Initialize last 7 days
-          for (let i = 6; i >= 0; i--) {
-            const date = new Date(today);
-            date.setDate(date.getDate() - i);
-            const dateStr = date.toLocaleDateString('en-US', { weekday: 'short' });
-            pricesByDay[dateStr] = { total: 0, count: 0 };
-          }
+        // Collect last 7 days average from history events
+        const store = getHistoryStore();
+        const byDay = new Map();
 
-          // Aggregate prices
-          items.forEach(item => {
-            const price = item.currentPrice || item.current_price;
-            if (price) {
-              const lastChecked = item.lastChecked || item.last_checked;
-              const itemDate = lastChecked ? new Date(lastChecked) : new Date();
-              const dayStr = itemDate.toLocaleDateString('en-US', { weekday: 'short' });
-              if (pricesByDay[dayStr]) {
-                pricesByDay[dayStr].total += parseFloat(price);
-                pricesByDay[dayStr].count += 1;
-              }
+        const today = new Date();
+        const dayKeys = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(today);
+          d.setDate(d.getDate() - i);
+          const key = d.toISOString().slice(0, 10); // YYYY-MM-DD
+          dayKeys.push(key);
+          byDay.set(key, { total: 0, count: 0 });
+        }
+
+        Object.values(store).forEach(list => {
+          (list || []).forEach(entry => {
+            const key = (entry.ts || '').slice(0, 10);
+            if (byDay.has(key)) {
+              byDay.get(key).total += parseFloat(entry.price);
+              byDay.get(key).count += 1;
             }
           });
+        });
 
-          // Calculate averages
-          labels = Object.keys(pricesByDay);
-          data = labels.map(day => {
-            const dayData = pricesByDay[day];
-            return dayData.count > 0 ? (dayData.total / dayData.count).toFixed(2) : null;
-          });
+        labels = dayKeys.map(k => {
+          const d = new Date(k);
+          return d.toLocaleDateString('en-US', { weekday: 'short' });
+        });
+        data = dayKeys.map(k => {
+          const info = byDay.get(k);
+          return info.count > 0 ? +(info.total / info.count).toFixed(2) : null;
+        });
 
-          // Fill nulls with previous value
-          for (let i = 1; i < data.length; i++) {
-            if (data[i] === null) data[i] = data[i - 1];
-          }
+        // Carry forward last known value for smooth line
+        for (let i = 0; i < data.length; i++) {
+          if (data[i] === null) data[i] = i > 0 ? data[i - 1] : 0;
         }
       } catch (e) {
         console.log('Using demo chart data');
+        labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        data = [120, 118, 118, 115, 112, 112, 110];
       }
 
       chartInstance = new Chart(ctx, {
