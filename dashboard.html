@@ -871,10 +871,10 @@
             <h3>General Preferences</h3>
             <div style="max-width: 600px; display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1.5rem;">
 
-              <div style="display:none; align-items:center; justify-content:space-between;">
+              <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div>
-                  <div style="font-weight:600;">Email Notifications</div>
-                  <div style="font-size:0.9rem; color:var(--text-secondary);">Get alerts when prices drop</div>
+                  <div style="font-weight:600;">Browser Notifications</div>
+                  <div style="font-size:0.9rem; color:var(--text-secondary);">Get alerts when prices drop via browser notification</div>
                 </div>
                 <label class="switch">
                   <input type="checkbox" id="notificationsToggle">
@@ -1035,7 +1035,7 @@
           const user = data.user || data;
           currentUser = user; // Store user data globally
 
-          const name = user.name || user.email || 'User';
+          const name = user.name || 'User';
           document.getElementById('sidebarName').textContent = name;
 
           const avatarEl = document.getElementById('sidebarAvatar');
@@ -1714,6 +1714,83 @@
           frequencyDisplay.textContent = frequency;
         }
       }
+
+      // Browser notification logic
+      setupBrowserNotifications();
+    }
+
+    // ==================== BROWSER NOTIFICATIONS ====================
+    let notificationPollInterval = null;
+    function setupBrowserNotifications() {
+      const toggle = document.getElementById('notificationsToggle');
+      if (!toggle) return;
+
+      // On toggle change, save setting and (if enabled) request permission
+      toggle.addEventListener('change', () => {
+        const enabled = toggle.checked;
+        const s = JSON.parse(localStorage.getItem(STORAGE_KEY_SETTINGS)) || {};
+        s.notifications = enabled;
+        localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(s));
+        if (enabled) {
+          requestNotificationPermission();
+          startNotificationPolling();
+        } else {
+          stopNotificationPolling();
+        }
+      });
+
+      // On load, if enabled, start polling
+      if (toggle.checked) {
+        requestNotificationPermission();
+        startNotificationPolling();
+      } else {
+        stopNotificationPolling();
+      }
+    }
+
+    function requestNotificationPermission() {
+      if (window.Notification && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+    }
+
+    function startNotificationPolling() {
+      stopNotificationPolling();
+      fetchAndShowNotifications();
+      notificationPollInterval = setInterval(fetchAndShowNotifications, 60000); // every 60s
+    }
+
+    function stopNotificationPolling() {
+      if (notificationPollInterval) clearInterval(notificationPollInterval);
+      notificationPollInterval = null;
+    }
+
+    async function fetchAndShowNotifications() {
+      if (!window.Notification || Notification.permission !== 'granted') return;
+      try {
+        const res = await fetch('https://price-monitor-backend-production-e326.up.railway.app/alerts/unread', { credentials: 'include' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data.success || !Array.isArray(data.notifications)) return;
+        data.notifications.forEach(showBrowserNotification);
+      } catch (e) { /* ignore */ }
+    }
+
+    function showBrowserNotification(alert) {
+      const title = alert.productName ? `Price Alert: ${alert.productName}` : 'Price Alert';
+      const body = alert.oldPrice && alert.newPrice
+        ? `Price changed from ${alert.oldPrice} to ${alert.newPrice} ${alert.currency || ''}`
+        : 'A tracked product has a new price.';
+      const url = alert.productUrl || undefined;
+      const n = new Notification(title, {
+        body,
+        icon: '/favicon-32x32.png',
+        data: { url }
+      });
+      n.onclick = function(e) {
+        if (url) window.open(url, '_blank');
+        n.close();
+      };
     }
 
     document.getElementById('saveSettingsBtn').addEventListener('click', () => {
