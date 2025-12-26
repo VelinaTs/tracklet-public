@@ -770,10 +770,16 @@
           <div class="card" style="margin-bottom: 2rem;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
               <h3>Price Trends</h3>
-              <select class="select" style="width:auto; padding:0.4rem 2rem 0.4rem 0.8rem;">
-                <option>Last 7 Days</option>
-                <option>Last 30 Days</option>
-              </select>
+              <div style="display:flex; gap:0.5rem; align-items:center;">
+                <select id="chartTypeSelect" class="select" style="width:auto; padding:0.4rem 2rem 0.4rem 0.8rem;">
+                  <option value="portfolio">Total Portfolio</option>
+                  <option value="perProduct">Per-Product (Last 20)</option>
+                </select>
+                <select id="chartRangeSelect" class="select" style="width:auto; padding:0.4rem 2rem 0.4rem 0.8rem;">
+                  <option value="7">Last 7 Days</option>
+                  <option value="30">Last 30 Days</option>
+                </select>
+              </div>
             </div>
             <div style="height: 300px; width: 100%;">
               <canvas id="dashboardChart"></canvas>
@@ -1015,6 +1021,7 @@
 
     async function initApp() {
       initTheme();
+      initChartControls();
 
       // Fetch user from backend
       try {
@@ -1119,6 +1126,8 @@
     const STORAGE_KEY_ITEMS = 'tracklet_items_v2';
     const STORAGE_KEY_SETTINGS = 'tracklet_settings_v2';
     const STORAGE_KEY_HISTORY = 'tracklet_price_history_v1';
+    const STORAGE_KEY_CHART_MODE = 'tracklet_chart_mode_v1';
+    const STORAGE_KEY_CHART_RANGE = 'tracklet_chart_range_v1';
     let currentUser = null; // Store user data globally
     let cachedItems = []; // Cache for items
 
@@ -1135,6 +1144,27 @@
       try {
         localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(store));
       } catch (_) { }
+    }
+
+    // Chart controls (type & range)
+    function initChartControls() {
+      const typeSel = document.getElementById('chartTypeSelect');
+      const rangeSel = document.getElementById('chartRangeSelect');
+      if (!typeSel || !rangeSel) return;
+
+      const savedMode = localStorage.getItem(STORAGE_KEY_CHART_MODE) || 'portfolio';
+      const savedRange = localStorage.getItem(STORAGE_KEY_CHART_RANGE) || '7';
+      typeSel.value = savedMode;
+      rangeSel.value = savedRange;
+
+      typeSel.addEventListener('change', () => {
+        localStorage.setItem(STORAGE_KEY_CHART_MODE, typeSel.value);
+        initChart();
+      });
+      rangeSel.addEventListener('change', () => {
+        localStorage.setItem(STORAGE_KEY_CHART_RANGE, rangeSel.value);
+        initChart();
+      });
     }
 
     function getProductKey(item) {
