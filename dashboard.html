@@ -187,31 +187,56 @@
       align-items: center;
       justify-content: center;
       z-index: 9999;
+      font-size: 1.2rem;
+      font-weight: 600;
     }
 
-    .debug-panel {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      max-height: 200px;
-      overflow-y: auto;
-      background: #1a1a1a;
-      color: #0f0;
-      font-family: monospace;
-      font-size: 11px;
-      padding: 10px;
-      border-top: 2px solid #0f0;
-      z-index: 10000;
+    .theme-toggle {
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      cursor: pointer;
+      padding: 0.5rem;
+      transition: transform 0.3s ease;
     }
 
-    .debug-panel div {
-      margin: 2px 0;
+    .theme-toggle:hover {
+      transform: scale(1.1);
+    }
+
+    @media (max-width: 768px) {
+      .nav-container {
+        padding: 0 1rem;
+      }
+
+      .logo {
+        font-size: 1.25rem;
+      }
+
+      .user-info span {
+        display: none;
+      }
+
+      .welcome h1 {
+        font-size: 2rem;
+      }
+
+      .welcome p {
+        font-size: 1rem;
+      }
+
+      .cards {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+
+      .container {
+        padding: 2rem 1rem;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="debug-panel" id="debugPanel"></div>
   <div class="loading" id="loading">Loading...</div>
   
   <nav style="display: none;" id="nav">
@@ -222,6 +247,9 @@
           <div class="avatar" id="userAvatar"></div>
           <span id="userName"></span>
         </div>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+          <span class="theme-icon">🌙</span>
+        </button>
         <button class="btn btn-outline" id="logoutBtn">Logout</button>
       </div>
     </div>
@@ -230,21 +258,21 @@
   <div class="container" style="display: none;" id="content">
     <div class="welcome">
       <h1>Welcome back! 👋</h1>
-      <p>You're successfully logged in to your Tracklet account.</p>
+      <p>Your price tracking dashboard</p>
     </div>
 
     <div class="cards">
       <div class="card">
         <h3>🎯 Price Tracking</h3>
-        <p>Monitor competitor prices in real-time and get instant alerts when prices change.</p>
+        <p>Monitor competitor prices in real-time and get instant alerts.</p>
       </div>
       <div class="card">
         <h3>📊 Analytics</h3>
-        <p>View detailed insights and trends about your competitors' pricing strategies.</p>
+        <p>View insights and trends about pricing strategies.</p>
       </div>
       <div class="card">
         <h3>⚙️ Settings</h3>
-        <p>Customize your tracking preferences and notification settings.</p>
+        <p>Customize your tracking and notification preferences.</p>
       </div>
     </div>
   </div>
@@ -357,5 +385,6 @@
 </script>
 </body>
 </html>
-< ! - -   c a c h e - b u s t   - - >  
+< ! - -   c a c h e - b u s t   - - > 
+ 
  
