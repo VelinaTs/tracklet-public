@@ -40,9 +40,9 @@ async function initAppUpdated() {
 
   // Load Data
   loadSettings();
-  renderItems();
-  initChart();
-  
+  await renderItems();
+  await updateStats();
+  await initChart();
   // Hide Loader
   setTimeout(() => {
     loading.style.opacity = '0';

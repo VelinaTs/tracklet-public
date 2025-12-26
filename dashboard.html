@@ -14,6 +14,60 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
+        /* Chart UI Enhancements */
+        .chart-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1.5rem;
+          padding-bottom: 1.25rem;
+          border-bottom: 1px solid var(--border);
+        }
+        .chart-title {
+          font-size: 1.1rem;
+          font-weight: 700;
+          color: var(--text);
+          letter-spacing: -0.01em;
+        }
+        .chart-controls {
+          display: flex;
+          gap: 0.75rem;
+        }
+        .chart-select {
+          appearance: none;
+          -webkit-appearance: none;
+          background-color: var(--bg);
+          border: 1px solid var(--border);
+          border-radius: 6px;
+          padding: 0.4rem 2rem 0.4rem 0.9rem;
+          font-size: 0.8rem;
+          font-weight: 600;
+          color: var(--text-secondary);
+          cursor: pointer;
+          transition: all 0.2s ease;
+          background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2364748b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right 0.8rem center;
+          background-size: 10px;
+        }
+        .chart-select:hover {
+          border-color: var(--gray-300);
+          color: var(--text);
+          box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .chart-select:focus {
+          outline: none;
+          border-color: var(--primary);
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        [data-theme="dark"] .chart-select {
+          background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2394a3b8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        }
+        .chart-container {
+          position: relative;
+          height: 320px;
+          width: 100%;
+        }
     /* ==================== SHARED VARIABLES (From Index.html) ==================== */
     :root {
       /* Light theme */
@@ -743,11 +797,11 @@
       <div class="container">
 
         <div id="view-dashboard" class="view-section active">
-          <div class="stats-grid">
-            <div class="card stat-card">
-              <span class="stat-label">Total Tracked</span>
+          <div class="stats-grid" style="margin-bottom:2.5rem;">
+            <div class="card stat-card" style="box-shadow:var(--shadow-lg);">
+              <span class="stat-label">Total Tracked Products</span>
               <span class="stat-value" id="statTotal">0</span>
-              <span class="stat-trend trend-up">
+              <span class="stat-trend trend-up" id="statTotalTrend">
                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
                   <polyline points="17 6 23 6 23 12"></polyline>
@@ -755,33 +809,38 @@
                 Active
               </span>
             </div>
-            <div class="card stat-card">
+            <div class="card stat-card" style="box-shadow:var(--shadow-lg);">
               <span class="stat-label">Price Changes (24h)</span>
               <span class="stat-value" id="statChanges">0</span>
-              <span class="stat-trend" style="color:var(--text-secondary)">No recent activity</span>
+              <span class="stat-trend" id="statChangesTrend" style="color:var(--text-secondary)">No recent activity</span>
             </div>
-            <div class="card stat-card">
-              <span class="stat-label">Next Refresh</span>
-              <span class="stat-value" style="font-size: 1.5rem;">~25m</span>
+            <div class="card stat-card" style="box-shadow:var(--shadow-lg);">
+              <span class="stat-label">Next Data Refresh</span>
+              <span class="stat-value" id="statNextRefresh" style="font-size: 1.5rem;">~25m</span>
               <span class="stat-trend trend-up">Automated</span>
             </div>
           </div>
 
-          <div class="card" style="margin-bottom: 2rem;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-              <h3>Price Trends</h3>
-              <div style="display:flex; gap:0.5rem; align-items:center;">
-                <select id="chartTypeSelect" class="select" style="width:auto; padding:0.4rem 2rem 0.4rem 0.8rem;">
+          <div class="card" style="margin-bottom: 2rem; padding: 1.5rem;">
+            <div class="chart-header">
+              <div>
+                <h3 class="chart-title">Portfolio Value</h3>
+                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">
+                  Asset value based on tracked prices
+                </div>
+              </div>
+              <div class="chart-controls">
+                <select id="chartTypeSelect" class="chart-select">
                   <option value="portfolio">Total Portfolio</option>
-                  <option value="perProduct">Per-Product (Last 20)</option>
+                  <option value="perProduct">Per Product</option>
                 </select>
-                <select id="chartRangeSelect" class="select" style="width:auto; padding:0.4rem 2rem 0.4rem 0.8rem;">
+                <select id="chartRangeSelect" class="chart-select">
                   <option value="7">Last 7 Days</option>
                   <option value="30">Last 30 Days</option>
                 </select>
               </div>
             </div>
-            <div style="height: 300px; width: 100%;">
+            <div class="chart-container">
               <canvas id="dashboardChart"></canvas>
             </div>
           </div>
@@ -1819,83 +1878,114 @@
     }
 
     // ==================== CHART JS ====================
+    // ==================== CHART JS ====================
     async function initChart() {
-      const ctx = document.getElementById('dashboardChart').getContext('2d');
+      const canvas = document.getElementById('dashboardChart');
+      if (!canvas) return;
+      
+      const ctx = canvas.getContext('2d');
       const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      
+      // CSS Variable Extraction Helper
+      const style = getComputedStyle(document.body);
+      const primaryColor = style.getPropertyValue('--primary').trim() || '#2563eb';
+      const textColor = style.getPropertyValue('--text-secondary').trim() || '#64748b';
+      const gridColor = isDark ? '#334155' : '#e2e8f0';
 
-      const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-      gradient.addColorStop(0, 'rgba(37, 99, 235, 0.2)');
-      gradient.addColorStop(1, 'rgba(37, 99, 235, 0)');
-
-      // 1. Build real data from items/history according to chart mode
+      // 1. Prepare Data
       const mode = (localStorage.getItem(STORAGE_KEY_CHART_MODE) || 'portfolio');
       const rangeDays = parseInt(localStorage.getItem(STORAGE_KEY_CHART_RANGE) || '7', 10);
-      let labels = [];
-      let datasets = [];
+      
+      let chartData = {};
+      
       if (mode === 'perProduct') {
-        const per = await buildPerProductChartData(rangeDays);
-        labels = per.labels;
-        datasets = per.datasets;
+        chartData = await buildPerProductChartData(rangeDays);
       } else {
-        const { labels: lbls, data } = await processChartData(rangeDays);
-        labels = lbls;
-        datasets = [{
-          label: 'Total Portfolio Value',
-          data: data,
-          borderColor: '#2563eb',
-          backgroundColor: gradient,
-          borderWidth: 3,
-          pointBackgroundColor: '#fff',
-          pointBorderColor: '#2563eb',
-          pointBorderWidth: 2,
-          pointRadius: 3,
-          pointHoverRadius: 5,
-          fill: true,
-          tension: 0.35
-        }];
+        const processed = await processChartData(rangeDays);
+        
+        // Create Gradient
+        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, hexToRgba(primaryColor, 0.25));
+        gradient.addColorStop(1, hexToRgba(primaryColor, 0.0));
+
+        chartData = {
+          labels: processed.labels,
+          datasets: [{
+            label: 'Portfolio Value',
+            data: processed.data,
+            borderColor: primaryColor,
+            backgroundColor: gradient,
+            borderWidth: 2,
+            pointBackgroundColor: isDark ? '#1e293b' : '#ffffff',
+            pointBorderColor: primaryColor,
+            pointBorderWidth: 2,
+            pointRadius: 0, // Hidden by default
+            pointHoverRadius: 6, // Pop on hover
+            fill: true,
+            tension: 0.4, // Smooth curve
+            cubicInterpolationMode: 'monotone'
+          }]
+        };
       }
 
-      // 2. Destroy old instance if exists
+      // 2. Destroy old instance
       if (chartInstance && typeof chartInstance.destroy === 'function') {
         chartInstance.destroy();
         chartInstance = null;
       }
 
-      // Helper: currency symbol
+      // Helper for Currency
       function getCurrencySymbol() {
         try {
-          const el = document.getElementById('currency');
-          const c = (el ? el.value : 'USD') || 'USD';
-          return c === 'USD' ? '$' : c === 'EUR' ? '€' : c === 'GBP' ? '£' : '$';
+            const el = document.getElementById('currency');
+            const c = (el ? el.value : 'USD') || 'USD';
+            return c === 'USD' ? '$' : c === 'EUR' ? '€' : c === 'GBP' ? '£' : '$';
         } catch (_) { return '$'; }
       }
 
       // 3. Render Chart
       chartInstance = new Chart(ctx, {
         type: 'line',
-        data: { labels, datasets },
+        data: chartData,
         options: {
           responsive: true,
           maintainAspectRatio: false,
           interaction: {
-            mode: 'index',
-            intersect: false
+            mode: 'index',  // Shows tooltip when hovering x-axis anywhere
+            intersect: false,
           },
           plugins: {
-            legend: { display: mode === 'perProduct', labels: { color: isDark ? '#94a3b8' : '#0f172a' } },
+            legend: { 
+              display: mode === 'perProduct', 
+              position: 'top',
+              align: 'end',
+              labels: { 
+                color: textColor,
+                usePointStyle: true,
+                boxWidth: 8,
+                font: { family: "'Inter', sans-serif", size: 11 }
+              } 
+            },
             tooltip: {
-              backgroundColor: isDark ? '#1e293b' : '#fff',
-              titleColor: isDark ? '#fff' : '#0f172a',
-              bodyColor: isDark ? '#cbd5e1' : '#64748b',
-              borderColor: isDark ? '#334155' : '#e2e8f0',
+              backgroundColor: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+              titleColor: isDark ? '#f1f5f9' : '#0f172a',
+              bodyColor: isDark ? '#cbd5e1' : '#475569',
+              borderColor: gridColor,
               borderWidth: 1,
               padding: 12,
+              cornerRadius: 8,
+              titleFont: { family: "'Inter', sans-serif", size: 13, weight: '600' },
+              bodyFont: { family: "'Inter', sans-serif", size: 12 },
               displayColors: mode === 'perProduct',
               callbacks: {
                 label: function (context) {
                   const sym = getCurrencySymbol();
-                  const val = sym + parseFloat(context.parsed.y).toFixed(2);
-                  return mode === 'perProduct' ? `${context.dataset.label}: ${val}` : val;
+                  let label = context.dataset.label || '';
+                  if (label) label += ': ';
+                  if (context.parsed.y !== null) {
+                    label += sym + context.parsed.y.toFixed(2);
+                  }
+                  return label;
                 }
               }
             }
@@ -1904,17 +1994,26 @@
             x: {
               grid: { display: false },
               ticks: {
-                color: isDark ? '#94a3b8' : '#64748b',
-                maxTicksLimit: rangeDays === 30 ? 10 : 7
-              }
+                color: textColor,
+                font: { family: "'Inter', sans-serif", size: 11 },
+                maxTicksLimit: rangeDays === 30 ? 6 : 7,
+                maxRotation: 0
+              },
+              border: { display: false }
             },
             y: {
-              grid: { color: isDark ? '#334155' : '#e2e8f0', borderDash: [5, 5] },
+              border: { display: false }, // Hide Y axis line
+              grid: { 
+                color: gridColor, 
+                borderDash: [6, 6], // Dashed grid lines
+                drawBorder: false
+              },
               ticks: {
-                color: isDark ? '#94a3b8' : '#64748b',
-                callback: function (value) {
-                  const sym = getCurrencySymbol();
-                  return sym + value;
+                color: textColor,
+                font: { family: "'Inter', sans-serif", size: 10 },
+                padding: 10,
+                callback: function(value) {
+                  return getCurrencySymbol() + value;
                 }
               }
             }
@@ -1923,6 +2022,141 @@
       });
     }
 
+    // Helper: Hex to RGBA
+    function hexToRgba(hex, alpha) {
+        let r = 0, g = 0, b = 0;
+        // 3 digits
+        if (hex.length === 4) {
+            r = "0x" + hex[1] + hex[1];
+            g = "0x" + hex[2] + hex[2];
+            b = "0x" + hex[3] + hex[3];
+        } else if (hex.length === 7) {
+            r = "0x" + hex[1] + hex[2];
+            g = "0x" + hex[3] + hex[4];
+            b = "0x" + hex[5] + hex[6];
+        }
+        return "rgba(" + +r + "," + +g + "," + +b + "," + alpha + ")";
+    }
+
+    function updateChartColors() {
+        if (!chartInstance) return;
+        // Re-init completely to catch new CSS variables
+        initChart();
+    }
+
+    // Data Processor: Portfolio
+    async function processChartData(rangeDays = 7) {
+      const items = await getItems();
+      // Ensure history is up to date
+      updateHistoryFromItems(items);
+      const store = getHistoryStore();
+
+      const labels = [];
+      const data = [];
+      const now = new Date();
+
+      // Generate dates backwards from today
+      for (let i = rangeDays - 1; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        const dayKey = d.toISOString().slice(0, 10);
+        
+        // Format label (e.g., "Mon 24")
+        labels.push(d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' }));
+
+        // Sum prices active on this day
+        let dailyTotal = 0;
+        
+        // For each item, find its price on this specific day
+        items.forEach(item => {
+            const key = getProductKey(item);
+            const history = store[key] || [];
+            
+            // Find the last price record before or on this day
+            // If no record exists before this day, we assume the item wasn't tracked yet (0)
+            // Or we can assume it was the first price found (backfilling). 
+            // Let's use backfilling to prevent graph from looking like 0 -> 1000 jumps.
+            
+            let priceAtDay = null;
+            
+            // 1. Try to find exact or previous price
+            const relevant = history.filter(h => (h.ts || '').slice(0,10) <= dayKey);
+            if (relevant.length > 0) {
+                priceAtDay = parseFloat(relevant[relevant.length - 1].price);
+            } else if (history.length > 0) {
+                // 2. Fallback: If the item exists now, but history starts AFTER this day,
+                // do we show 0 or the first known price? 
+                // Showing 0 is more accurate for "Portfolio Value over time".
+                priceAtDay = 0; 
+            }
+
+            if (priceAtDay !== null && !isNaN(priceAtDay)) {
+                dailyTotal += priceAtDay;
+            }
+        });
+        
+        data.push(dailyTotal);
+      }
+
+      return { labels, data };
+    }
+
+    // Data Processor: Per Product
+    async function buildPerProductChartData(rangeDays = 7) {
+      const items = await getItems();
+      updateHistoryFromItems(items);
+      const store = getHistoryStore();
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+      // Sort items by most recent activity/price change for relevance
+      const products = items.map(item => {
+          const key = getProductKey(item);
+          return {
+              key,
+              name: item.name || item.label || 'Product',
+              history: store[key] || []
+          };
+      }).slice(0, 10); // Limit to top 10 to prevent clutter
+
+      // Generate Dates
+      const labels = [];
+      const dateKeys = [];
+      const now = new Date();
+      for (let i = rangeDays - 1; i >= 0; i--) {
+          const d = new Date(now);
+          d.setDate(d.getDate() - i);
+          dateKeys.push(d.toISOString().slice(0, 10));
+          labels.push(d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' }));
+      }
+
+      // Generate Colors
+      const datasets = products.map((prod, index) => {
+          // HSL color generation for distinctness
+          const hue = (index * 137.508) % 360; // Golden angle approx
+          const color = `hsl(${hue}, ${isDark ? 70 : 60}%, ${isDark ? 60 : 50}%)`;
+
+          const data = dateKeys.map(dayKey => {
+              const relevant = prod.history.filter(h => (h.ts || '').slice(0,10) <= dayKey);
+              if (relevant.length === 0) return null; // Gap if not tracked yet
+              return parseFloat(relevant[relevant.length - 1].price);
+          });
+
+          return {
+              label: prod.name.length > 15 ? prod.name.substring(0, 12) + '...' : prod.name,
+              data: data,
+              borderColor: color,
+              backgroundColor: 'transparent',
+              borderWidth: 2,
+              pointRadius: 0,
+              pointHoverRadius: 4,
+              stepped: 'middle', // Square lines are better for price changes
+              tension: 0,
+              spanGaps: true
+          };
+      });
+
+      return { labels, datasets };
+    }
     // ==================== ANALYTICS VIEW ====================
     async function updateAnalyticsView() {
       const tier = (currentUser && (currentUser.subscriptionTier || currentUser.subscription_tier)) || 'free';
