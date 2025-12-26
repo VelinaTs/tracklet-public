@@ -1357,18 +1357,15 @@
     </div>`;
 
       try {
-        const [productRes, historyRes, alertsRes] = await Promise.all([
-          fetch(`https://price-monitor-backend-production-e326.up.railway.app/api/products/${productId}`, { credentials: 'include' }),
-          fetch(`https://price-monitor-backend-production-e326.up.railway.app/api/products/${productId}/history`, { credentials: 'include' }).catch(() => null),
-          fetch(`https://price-monitor-backend-production-e326.up.railway.app/api/products/${productId}/alerts`, { credentials: 'include' }).catch(() => null)
-        ]);
+        // Fetch product details only; history/alerts endpoints are not available
+        const productRes = await fetch(`https://price-monitor-backend-production-e326.up.railway.app/api/products/${productId}`, { credentials: 'include' });
 
         if (!productRes.ok) throw new Error('Failed to load');
 
         const responseData = await productRes.json();
         const product = responseData.product || responseData;
-        const priceHistory = historyRes && historyRes.ok ? await historyRes.json() : [];
-        const alerts = alertsRes && alertsRes.ok ? await alertsRes.json() : [];
+        const priceHistory = [];
+        const alerts = [];
 
         // Formatting Logic
         const currency = product.currency || 'USD';
@@ -1494,26 +1491,8 @@
         changesElement.style.color = 'var(--text-secondary)';
       }
 
-      // Try to fetch and display aggregate stats
-      try {
-        const statsResponse = await fetch('https://price-monitor-backend-production-e326.up.railway.app/api/stats', {
-          credentials: 'include'
-        });
-
-        if (statsResponse.ok) {
-          const stats = await statsResponse.json();
-          if (stats.totalProducts !== undefined) {
-            document.getElementById('statTotal').textContent = stats.totalProducts;
-          }
-          if (stats.priceChanges24h !== undefined) {
-            document.getElementById('statChanges').textContent = stats.priceChanges24h;
-          }
-        }
-        // Silently ignore 404 or other errors - use local calculations as fallback
-      } catch (e) {
-        // Use local calculations if API fails
-        console.log('Using local stats calculation');
-      }
+      // Backend aggregate stats endpoint is not available; rely on local calculations.
+      // If added in the future, wire it here.
     }
 
     // Settings Logic
