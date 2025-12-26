@@ -616,7 +616,7 @@
             <h3>General Preferences</h3>
             <div style="max-width: 600px; display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1.5rem;">
               
-              <div style="display:flex; align-items:center; justify-content:space-between;">
+              <div style="display:none; align-items:center; justify-content:space-between;">
                 <div>
                   <div style="font-weight:600;">Email Notifications</div>
                   <div style="font-size:0.9rem; color:var(--text-secondary);">Get alerts when prices drop</div>
@@ -632,11 +632,7 @@
                   <div style="font-weight:600;">Check Frequency</div>
                   <div style="font-size:0.9rem; color:var(--text-secondary);">How often we scan for changes</div>
                 </div>
-                <select class="select" id="refreshInterval" style="width: auto;">
-                  <option value="15">Every 15 minutes</option>
-                  <option value="30">Every 30 minutes</option>
-                  <option value="60">Every 60 minutes</option>
-                </select>
+                <div style="padding:0.5rem 1rem; background:var(--gray-100); border-radius:6px; font-weight:500; color:var(--text);" id="frequencyDisplay">Every 30 minutes</div>
               </div>
 
               <div style="display:flex; align-items:center; justify-content:space-between;">
@@ -1018,16 +1014,29 @@
 
     // Settings Logic
     function loadSettings() {
-      const s = JSON.parse(localStorage.getItem(STORAGE_KEY_SETTINGS)) || { notifications: false, interval: 30, currency: 'USD' };
+      const s = JSON.parse(localStorage.getItem(STORAGE_KEY_SETTINGS)) || { notifications: false, currency: 'USD' };
       document.getElementById('notificationsToggle').checked = s.notifications;
-      document.getElementById('refreshInterval').value = s.interval;
       document.getElementById('currency').value = s.currency;
+      
+      // Set check frequency based on subscription tier
+      if (currentUser) {
+        const tier = currentUser.subscriptionTier || 'free';
+        let frequency = 'Every 60 minutes';
+        if (tier === 'trial' || tier === 'professional') {
+          frequency = 'Every 30 minutes';
+        } else if (tier === 'enterprise') {
+          frequency = 'Every 15 minutes';
+        }
+        const frequencyDisplay = document.getElementById('frequencyDisplay');
+        if (frequencyDisplay) {
+          frequencyDisplay.textContent = frequency;
+        }
+      }
     }
 
     document.getElementById('saveSettingsBtn').addEventListener('click', () => {
       const s = {
         notifications: document.getElementById('notificationsToggle').checked,
-        interval: document.getElementById('refreshInterval').value,
         currency: document.getElementById('currency').value
       };
       localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(s));
