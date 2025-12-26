@@ -234,6 +234,19 @@
         padding: 2rem 1rem;
       }
     }
+    /* Tabs and forms */
+    .tabs { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .tab-btn { padding: 0.5rem 1rem; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text); border-radius: 0.5rem; cursor: pointer; font-weight: 600; }
+    .tab-btn.active { border-color: var(--primary); color: white; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); }
+    .section { display: none; }
+    .section.active { display: block; }
+    .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+    .input, .select { width: 100%; padding: 0.75rem 1rem; border: 2px solid var(--border); border-radius: 0.75rem; background: var(--bg-secondary); color: var(--text); font-size: 0.95rem; }
+    .switch { display: inline-flex; align-items: center; gap: 0.5rem; }
+    .items-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem; }
+    .item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
+    .item-actions { display: flex; gap: 0.5rem; }
+    .btn-danger { background: var(--danger); color: white; }
   </style>
 </head>
 <body>
@@ -261,20 +274,55 @@
       <p>Your price tracking dashboard</p>
     </div>
 
-    <div class="cards">
-      <div class="card">
-        <h3>🎯 Price Tracking</h3>
-        <p>Monitor competitor prices in real-time and get instant alerts.</p>
-      </div>
-      <div class="card">
-        <h3>📊 Analytics</h3>
-        <p>View insights and trends about pricing strategies.</p>
-      </div>
-      <div class="card">
-        <h3>⚙️ Settings</h3>
-        <p>Customize your tracking and notification preferences.</p>
-      </div>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="tracking">Tracking</button>
+      <button class="tab-btn" data-tab="analytics">Analytics</button>
+      <button class="tab-btn" data-tab="settings">Settings</button>
     </div>
+
+    <section class="section active" id="tab-tracking">
+      <div class="card">
+        <h3>Competitors</h3>
+        <p>Add product pages or competitor URLs to track.</p>
+        <div class="form-row">
+          <input class="input" id="newItemUrl" type="url" placeholder="https://example.com/product" />
+          <input class="input" id="newItemLabel" type="text" placeholder="Label (optional)" />
+          <button class="btn btn-outline" id="addItemBtn">Add</button>
+        </div>
+        <div class="items-list" id="itemsList"></div>
+      </div>
+    </section>
+
+    <section class="section" id="tab-analytics">
+      <div class="card">
+        <h3>Overview</h3>
+        <p id="analyticsSummary">Loading summary…</p>
+      </div>
+    </section>
+
+    <section class="section" id="tab-settings">
+      <div class="card">
+        <h3>Preferences</h3>
+        <div class="form-row">
+          <label class="switch">
+            <input type="checkbox" id="notificationsToggle" />
+            <span>Enable notifications</span>
+          </label>
+          <select class="select" id="refreshInterval">
+            <option value="15">Refresh every 15 min</option>
+            <option value="30">Refresh every 30 min</option>
+            <option value="60">Refresh every 60 min</option>
+          </select>
+          <select class="select" id="currency">
+            <option value="USD">USD</option>
+            <option value="EUR">EUR</option>
+            <option value="GBP">GBP</option>
+          </select>
+        </div>
+        <button class="btn btn-outline" id="saveSettingsBtn">Save Settings</button>
+        <div id="saveStatus" style="margin-top:0.75rem;color:var(--text-secondary)"></div>
+      </div>
+    </section>
   </div>
 
   <script src="auth.v4.js?v=4"></script>
@@ -311,11 +359,140 @@
         
         const avatar = document.getElementById('userAvatar');
         avatar.textContent = user.name.charAt(0).toUpperCase();
+        // Initialize dashboard features
+        initTabs();
+        initSettings();
+        initTracking();
+        updateAnalytics();
       } else {
         window.location.href = `${window.location.origin}/tracklet-public/login.html`;
       }
     } catch (error) {
       window.location.href = `${window.location.origin}/tracklet-public/login.html`;
+    }
+  }
+
+  // Tabs
+  function initTabs() {
+    const buttons = Array.from(document.querySelectorAll('.tab-btn'));
+    const sections = {
+      tracking: document.getElementById('tab-tracking'),
+      analytics: document.getElementById('tab-analytics'),
+      settings: document.getElementById('tab-settings'),
+    };
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        Object.values(sections).forEach(s => s.classList.remove('active'));
+        sections[btn.dataset.tab].classList.add('active');
+      });
+    });
+  }
+
+  // Settings persistence
+  const SETTINGS_KEY = 'tracklet.settings';
+  function loadSettings() {
+    try {
+      return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || { notifications: false, refreshInterval: 30, currency: 'USD' };
+    } catch {
+      return { notifications: false, refreshInterval: 30, currency: 'USD' };
+    }
+  }
+
+  function saveSettings(s) {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+  }
+
+  function initSettings() {
+    const s = loadSettings();
+    const notif = document.getElementById('notificationsToggle');
+    const interval = document.getElementById('refreshInterval');
+    const currency = document.getElementById('currency');
+    const saveBtn = document.getElementById('saveSettingsBtn');
+    const status = document.getElementById('saveStatus');
+
+    notif.checked = !!s.notifications;
+    interval.value = String(s.refreshInterval);
+    currency.value = s.currency || 'USD';
+
+    saveBtn.addEventListener('click', () => {
+      const next = { notifications: notif.checked, refreshInterval: Number(interval.value), currency: currency.value };
+      saveSettings(next);
+      status.textContent = 'Settings saved.';
+      setTimeout(() => status.textContent = '', 2000);
+    });
+  }
+
+  // Tracking items
+  const ITEMS_KEY = 'tracklet.items';
+  function loadItems() {
+    try {
+      return JSON.parse(localStorage.getItem(ITEMS_KEY)) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveItems(items) {
+    localStorage.setItem(ITEMS_KEY, JSON.stringify(items));
+    updateAnalytics();
+  }
+
+  function renderItems() {
+    const list = document.getElementById('itemsList');
+    const items = loadItems();
+    list.innerHTML = '';
+    items.forEach((it, idx) => {
+      const div = document.createElement('div');
+      div.className = 'item';
+      const left = document.createElement('div');
+      left.innerHTML = `<strong>${it.label || 'Item'}</strong><br/><span style="color:var(--text-secondary)">${it.url}</span>`;
+      const actions = document.createElement('div');
+      actions.className = 'item-actions';
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'btn btn-danger';
+      removeBtn.textContent = 'Remove';
+      removeBtn.addEventListener('click', () => {
+        const next = loadItems();
+        next.splice(idx, 1);
+        saveItems(next);
+        renderItems();
+      });
+      actions.appendChild(removeBtn);
+      div.appendChild(left);
+      div.appendChild(actions);
+      list.appendChild(div);
+    });
+  }
+
+  function initTracking() {
+    const addBtn = document.getElementById('addItemBtn');
+    const urlInput = document.getElementById('newItemUrl');
+    const labelInput = document.getElementById('newItemLabel');
+    addBtn.addEventListener('click', () => {
+      const url = urlInput.value.trim();
+      if (!url || !/^https?:\/\//i.test(url)) {
+        alert('Enter a valid URL starting with http(s)');
+        return;
+      }
+      const items = loadItems();
+      items.push({ url, label: labelInput.value.trim() });
+      saveItems(items);
+      urlInput.value = '';
+      labelInput.value = '';
+      renderItems();
+    });
+    renderItems();
+  }
+
+  // Analytics summary
+  function updateAnalytics() {
+    const s = loadSettings();
+    const items = loadItems();
+    const p = document.getElementById('analyticsSummary');
+    if (p) {
+      p.textContent = `${items.length} item(s) tracked • refresh every ${s.refreshInterval} min • currency ${s.currency}`;
     }
   }
 
