@@ -1529,7 +1529,28 @@
 
         urlIn.value = '';
         labelIn.value = '';
-        showToast('Product added successfully!');
+        showToast('Product added! Scraping price...');
+
+        // Poll for the new product's price
+        let pollAttempts = 0;
+        const maxPolls = 12; // up to 12 seconds
+        let found = false;
+        while (pollAttempts < maxPolls && !found) {
+          await new Promise(res => setTimeout(res, 1000));
+          pollAttempts++;
+          const items = await getItems();
+          // Find the product by URL (since name is optional)
+          const newItem = items.find(i => i.url === url);
+          if (newItem && (newItem.currentPrice || newItem.current_price)) {
+            found = true;
+            break;
+          }
+        }
+        if (found) {
+          showToast('Product price scraped!');
+        } else {
+          showToast('Product added, but price not yet available. It may take a few moments.', 'error');
+        }
         await renderItems();
         if (!document.getElementById('view-tracking').classList.contains('active')) {
           switchTab('tracking');
