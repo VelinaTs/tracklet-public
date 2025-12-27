@@ -700,6 +700,10 @@
       font-weight: 700;
       color: var(--primary);
     }
+  .refresh-disabled {
+    filter: grayscale(1) brightness(1.2);
+    cursor: not-allowed !important;
+  }
   </style>
 </head>
 
@@ -1465,38 +1469,41 @@
       }
       updateStats();
       // Disable/enable refresh buttons based on per-item next refresh
-      setTimeout(() => {
-        const now = Date.now();
-        let intervalMs = 6 * 60 * 60 * 1000;
-        if (currentUser) {
-          const tier = (currentUser.subscriptionTier || 'free').toLowerCase();
-          if (tier === 'professional') intervalMs = 2 * 60 * 60 * 1000;
-          else if (tier === 'enterprise') intervalMs = 45 * 60 * 1000;
-        }
-        (Array.isArray(cachedItems) ? cachedItems : []).forEach((item, idx) => {
-          const btn = document.getElementById('refreshBtn-' + (item.id || idx));
-          if (!btn) return;
-          const last = item.lastChecked || item.last_checked;
-          let next = 0;
-          if (last) {
-            next = new Date(last).getTime() + intervalMs;
-          } else {
-            next = 0;
-          }
-          if (!last || next <= now) {
-            btn.disabled = false;
-            btn.style.opacity = '1';
-            btn.title = 'Refresh';
-          } else {
-            btn.disabled = true;
-            btn.style.opacity = '0.5';
-            btn.title = 'Refresh not ready';
-          }
-        });
-      }, 0);
-      // Refresh analytics content in case items changed
-      updateAnalyticsView();
+  setTimeout(() => {
+    const now = Date.now();
+    let intervalMs = 6 * 60 * 60 * 1000;
+    if (currentUser) {
+      const tier = (currentUser.subscriptionTier || 'free').toLowerCase();
+      if (tier === 'professional') intervalMs = 2 * 60 * 60 * 1000;
+      else if (tier === 'enterprise') intervalMs = 45 * 60 * 1000;
     }
+    (Array.isArray(cachedItems) ? cachedItems : []).forEach((item, idx) => {
+      const btn = document.getElementById('refreshBtn-' + (item.id || idx));
+      if (!btn) return;
+      const last = item.lastChecked || item.last_checked;
+      let next = 0;
+      if (last) {
+        next = new Date(last).getTime() + intervalMs;
+      } else {
+        next = 0;
+      }
+      if (!last || next <= now) {
+        btn.disabled = false;
+        btn.classList.remove('refresh-disabled');
+        btn.style.opacity = '1';
+        btn.title = 'Refresh';
+      } else {
+        btn.disabled = true;
+        btn.classList.add('refresh-disabled');
+        btn.style.opacity = '0.5';
+        btn.title = 'Refresh not ready';
+      }
+    });
+  }, 0);
+
+  // Refresh analytics content in case items changed
+  updateAnalyticsView();
+}
 
     // Add Item Logic
     document.getElementById('addItemBtn').addEventListener('click', async () => {
