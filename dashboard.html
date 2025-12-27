@@ -816,8 +816,8 @@
             </div>
             <div class="card stat-card" style="box-shadow:var(--shadow-lg);">
               <span class="stat-label">Next Data Refresh</span>
-              <span class="stat-value" id="statNextRefresh" style="font-size: 1.5rem;">~25m</span>
-              <span class="stat-trend trend-up">Automated</span>
+              <span class="stat-value" id="statNextRefresh" style="font-size: 1.5rem;">—</span>
+              <span class="stat-trend trend-up" id="statNextRefreshDesc">Automated</span>
             </div>
           </div>
 
@@ -1474,25 +1474,6 @@
       addBtn.textContent = 'Scraping...';
 
       try {
-        // Optionally scrape price first
-        let price = null;
-        if (currentUser) {
-          try {
-            const scrapeResponse = await fetch('https://price-monitor-backend-production-e326.up.railway.app/api/scrape', {
-              method: 'POST',
-              credentials: 'include',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ url })
-            });
-            if (scrapeResponse.ok) {
-              const scrapeData = await scrapeResponse.json();
-              price = scrapeData.price || null;
-            }
-          } catch (scrapeError) {
-            console.warn('Scraping API not available, continuing without price:', scrapeError);
-          }
-        }
-
         // Send product to backend
         const createRes = await fetch('https://price-monitor-backend-production-e326.up.railway.app/api/products', {
           method: 'POST',
@@ -1501,7 +1482,7 @@
           body: JSON.stringify({
             url,
             name: label,
-            price: price
+            price: price,
             // Add other fields as needed (currency, alert_threshold, etc.)
           })
         });
@@ -1714,8 +1695,45 @@
         changesElement.style.color = 'var(--text-secondary)';
       }
 
-      // Backend aggregate stats endpoint is not available; rely on local calculations.
-      // If added in the future, wire it here.
+      // Live countdown to next allowed scrape based on tier
+      if (window.nextRefreshTimer) clearInterval(window.nextRefreshTimer);
+      const refreshEl = document.getElementById('statNextRefresh');
+      const descEl = document.getElementById('statNextRefreshDesc');
+      let intervalMs = 24 * 60 * 60 * 1000, maxPerDay = 1, descText = 'Once daily';
+      if (currentUser) {
+        const tier = (currentUser.subscriptionTier || 'free').toLowerCase();
+        if (tier === 'professional') {
+          intervalMs = 2 * 60 * 60 * 1000; maxPerDay = 12; descText = 'Up to 12×/day';
+        } else if (tier === 'enterprise') {
+          intervalMs = 45 * 60 * 1000; maxPerDay = 32; descText = 'Up to 32×/day';
+        }
+      }
+      // Find soonest next eligible scrape across all items
+      let soonest = null;
+      (Array.isArray(cachedItems) ? cachedItems : []).forEach(item => {
+        const last = item.lastChecked || item.last_checked;
+        if (last) {
+          const next = new Date(new Date(last).getTime() + intervalMs);
+          if (!soonest || next < soonest) soonest = next;
+        } else {
+          // If never checked, can scrape now
+          soonest = new Date();
+        }
+      });
+      function updateCountdown() {
+        const now = new Date();
+        let diff = soonest ? soonest - now : 0;
+        if (diff <= 0) {
+          if (refreshEl) refreshEl.textContent = 'Ready';
+        } else {
+          const min = Math.floor(diff / 60000);
+          const sec = Math.floor((diff % 60000) / 1000);
+          if (refreshEl) refreshEl.textContent = min > 0 ? `${min} min${min !== 1 ? 's' : ''}` : `${sec} sec`;
+        }
+        if (descEl) descEl.textContent = descText;
+      }
+      updateCountdown();
+      window.nextRefreshTimer = setInterval(updateCountdown, 60000);
     }
 
     // Settings Logic
