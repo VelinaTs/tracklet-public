@@ -1511,10 +1511,8 @@
 
       try {
         // Send product to backend
-        const body = {
-          url,
-          name: label
-        };
+        const body = { url };
+        if (label) body.name = label;
         console.log('DEBUG: Add product request body:', body);
         const createRes = await fetch('https://price-monitor-backend-production-e326.up.railway.app/api/products', {
           method: 'POST',
