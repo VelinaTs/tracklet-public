@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
+
 <head>
   <link rel="icon" type="image/x-icon" href="/tracklet-public/favicon.ico">
   <link rel="icon" type="image/svg+xml" href="/tracklet-public/favicon.svg">
@@ -11,7 +12,8 @@
   <base href="/tracklet-public/">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
   <style>
     :root {
       --primary: #2563eb;
@@ -39,9 +41,11 @@
       --text-secondary: var(--gray-600);
       --border: var(--gray-200);
       --card-bg: white;
-      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -2px rgba(0,0,0,0.05);
-      --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.08), 0 8px 10px -6px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+      --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.12);
     }
+
     [data-theme="dark"] {
       --bg: #0a0f1a;
       --bg-secondary: #131c2e;
@@ -49,11 +53,21 @@
       --text-secondary: #94a3b8;
       --border: #1e293b;
       --card-bg: #151f32;
-      --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
-      --shadow-lg: 0 20px 40px rgba(0,0,0,0.5);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.5);
+      --shadow-xl: 0 30px 60px rgba(0, 0, 0, 0.6);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       background: var(--bg);
@@ -61,335 +75,530 @@
       line-height: 1.6;
       min-height: 100vh;
     }
-    a { color: inherit; text-decoration: none; }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* Navigation */
     nav {
-      position: sticky; top: 0; z-index: 10;
-      background: rgba(248,250,252,0.85);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid rgba(226,232,240,0.5);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(248, 250, 252, 0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(226, 232, 240, 0.3);
     }
+
     [data-theme="dark"] nav {
-      background: rgba(10,15,26,0.9);
-      border-bottom: 1px solid rgba(30,41,59,0.5);
+      background: rgba(10, 15, 26, 0.85);
+      border-bottom: 1px solid rgba(30, 41, 59, 0.3);
     }
+
     .nav-container {
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 0 auto;
-      padding: 1rem 1.5rem;
+      padding: 1.25rem 2rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      flex-wrap: wrap;
+      gap: 2rem;
     }
+
     .logo {
-      font-weight: 800;
-      font-size: 1.5rem;
-      letter-spacing: -0.02em;
+      font-weight: 900;
+      font-size: 1.75rem;
+      letter-spacing: -0.03em;
       background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
+      flex-shrink: 0;
     }
+
     .nav-links {
       display: flex;
-      gap: 1.5rem;
+      gap: 2rem;
       font-weight: 600;
       color: var(--text-secondary);
-      flex-wrap: wrap;
+      align-items: center;
+      font-size: 1.05rem;
     }
+
+    .nav-links a {
+      transition: color 0.3s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--primary);
+    }
+
     .nav-actions {
       display: flex;
-      gap: 0.75rem;
+      gap: 1rem;
       align-items: center;
+      flex-shrink: 0;
     }
+
+    #themeToggle {
+      border: none;
+      background: var(--card-bg);
+      font-size: 1.4rem;
+      cursor: pointer;
+      padding: 0.65rem;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+    }
+
+    #themeToggle:hover {
+      transform: scale(1.1);
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text);
+      padding: 0.65rem;
+      border-radius: 12px;
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Container */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 2rem 4rem;
+    }
+
+    /* Hero */
+    .hero-section {
+      text-align: center;
+      padding: 5rem 2rem 4rem;
+    }
+
+    .section-title {
+      font-size: 3.5rem;
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+
+    .section-subtitle {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      margin-bottom: 3rem;
+    }
+
+    /* Toggle */
+    .toggle-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 3rem;
+    }
+
+    .toggle {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 999px;
+      padding: 0.5rem;
+      display: inline-flex;
+      gap: 0.5rem;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .toggle-btn {
+      border: none;
+      background: transparent;
+      padding: 0.85rem 2rem;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--text-secondary);
+      transition: all 0.3s ease;
+      font-size: 1.05rem;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .toggle-btn.active {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+    }
+
+    .save-badge {
+      background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 800;
+    }
+
+    /* Plan Selection Cards */
+    .plan-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+
+    .plan-option {
+      background: var(--card-bg);
+      border: 3px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem 1.5rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+      position: relative;
+    }
+
+    .plan-option:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .plan-option.selected {
+      border-color: var(--primary);
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(139, 92, 246, 0.05));
+      box-shadow: 0 0 0 1px var(--primary);
+    }
+
+    .plan-option.popular::before {
+      content: 'POPULAR';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      padding: 0.35rem 1rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+    }
+
+    .plan-name {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+    }
+
+    .plan-price {
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .plan-price small {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .plan-description {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    /* Selected Plan Details */
+    .plan-details {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      padding: 3rem;
+      box-shadow: var(--shadow-xl);
+      margin-bottom: 2rem;
+    }
+
+    .plan-details-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      padding-bottom: 2rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .plan-details-title {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+
+    .plan-details-subtitle {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .check {
+      color: var(--success);
+      font-size: 1.5rem;
+      font-weight: 800;
+      flex-shrink: 0;
+      margin-top: -2px;
+    }
+
+    .feature-text {
+      font-size: 1.05rem;
+      line-height: 1.5;
+    }
+
+    /* Buttons */
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 0.75rem 1.4rem;
-      border-radius: 0.75rem;
-      font-weight: 600;
-      gap: 0.4rem;
+      padding: 1.25rem 3rem;
+      border-radius: 12px;
+      font-weight: 700;
+      gap: 0.5rem;
       border: none;
       cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      position: relative;
-      overflow: hidden;
-      font-size: 1rem;
-    }
-    .btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
+      transition: all 0.3s ease;
+      font-size: 1.15rem;
       width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-      transition: left 0.5s;
+      max-width: 400px;
+      margin: 0 auto;
     }
-    .btn:hover::before { left: 100%; }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
     .btn-primary {
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
       color: white;
-      box-shadow: 0 8px 20px rgba(37,99,235,0.25);
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
     }
+
+    .btn-primary:hover {
+      box-shadow: 0 15px 35px rgba(37, 99, 235, 0.4);
+    }
+
     .btn-outline {
       border: 2px solid var(--primary);
       background: transparent;
       color: var(--primary);
     }
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 2rem 1.5rem 3rem;
-    }
-    .section-title {
-      text-align: center;
-      font-size: 2.5rem;
-      margin-bottom: 0.5rem;
-      word-break: break-word;
-    }
-    .section-subtitle {
-      text-align: center;
-      color: var(--text-secondary);
-      margin-bottom: 2.5rem;
-    }
-    .toggle-container {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 2rem;
-    }
-    .toggle {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 0.3rem;
-      display: inline-flex;
-      gap: 0.35rem;
-      box-shadow: var(--shadow-md);
-    }
-    .toggle-btn {
-      border: none;
-      background: transparent;
-      padding: 0.55rem 1.25rem;
-      border-radius: 999px;
-      cursor: pointer;
-      font-weight: 700;
-      color: var(--text-secondary);
-      transition: all 0.2s ease;
-      font-size: 1rem;
-    }
-    .toggle-btn.active {
+
+    .btn-outline:hover {
       background: var(--primary);
       color: white;
-      box-shadow: 0 6px 16px rgba(37,99,235,0.3);
-    }
-    .save-badge {
-      background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-      color: white;
-      padding: 0.1rem 0.5rem;
-      border-radius: 999px;
-      font-size: 0.8rem;
-      margin-left: 0.35rem;
-      font-weight: 700;
-    }
-    .pricing-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
-      gap: 1.5rem;
-      width: 100%;
-    }
-    .price-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 1.5rem;
-      box-shadow: var(--shadow-lg);
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-      min-height: 420px;
-    }
-    .price-card > a { margin-top: auto; }
-    .price-card h3 {
-      font-size: 1.2rem;
-      margin-bottom: 0.25rem;
-      word-break: break-word;
-    }
-    .price {
-      font-size: 2.2rem;
-      font-weight: 800;
-      display: flex;
-      align-items: baseline;
-      gap: 0.25rem;
-      margin: 0.6rem 0 0.4rem;
-      flex-wrap: wrap;
-    }
-    .price small {
-      font-size: 0.9rem;
-      color: var(--text-secondary);
-    }
-    .subtitle {
-      color: var(--text-secondary);
-      margin-bottom: 1rem;
-    }
-    .features-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.45rem;
-      color: var(--text-secondary);
-      font-weight: 500;
-      margin-bottom: 1.2rem;
-    }
-    .check { color: var(--success); margin-right: 0.35rem; }
-    .popular { border: 2px solid var(--primary); }
-    .popular-badge {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      background: var(--primary);
-      color: white;
-      font-weight: 800;
-      padding: 0.2rem 0.6rem;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      letter-spacing: 0.02em;
-      z-index: 2;
-    }
-    footer {
-      text-align: center;
-      padding: 2rem 1rem;
-      color: var(--text-secondary);
-      font-size: 1rem;
-    }
-    .note-banner {
-      background: rgba(37,99,235,0.08);
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 0.85rem 1rem;
-      margin: 1.5rem auto 0;
-      max-width: 900px;
-      text-align: center;
-      font-size: 1rem;
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
     }
 
-    /* Responsive styles */
-    @media (max-width: 900px) {
+    .btn-container {
+      text-align: center;
+    }
+
+    /* Note Banner */
+    .note-banner {
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(139, 92, 246, 0.08));
+      color: var(--text);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-align: center;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 3rem 2rem;
+      color: var(--text-secondary);
+      font-size: 1rem;
+      border-top: 1px solid var(--border);
+      margin-top: 4rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+
+      .mobile-menu-btn {
+        display: block;
+      }
+
+      .nav-links.active {
+        display: flex;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--card-bg);
+        flex-direction: column;
+        padding: 1.5rem 2rem;
+        gap: 1.25rem;
+        border-bottom: 1px solid var(--border);
+        box-shadow: var(--shadow-xl);
+      }
+
       .container {
-        padding: 2rem 0.8rem 2.5rem;
+        padding: 0 1.5rem 3rem;
       }
-      .pricing-grid {
-        gap: 1rem;
+
+      .hero-section {
+        padding: 3rem 1.5rem 2rem;
       }
-      .nav-container {
-        padding: 1rem 0.8rem;
+
+      .section-title {
+        font-size: 2.5rem;
+      }
+
+      .section-subtitle {
+        font-size: 1.1rem;
+      }
+
+      .plan-selector {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+      }
+
+      .plan-details {
+        padding: 2rem 1.5rem;
+      }
+
+      .toggle-btn {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.95rem;
       }
     }
-    @media (max-width: 700px) {
-      .pricing-grid {
-        grid-template-columns: 1fr;
+
+    @media (max-width: 640px) {
+      .nav-container {
+        padding: 1rem 1.5rem;
       }
-      .container {
-        padding: 1.2rem 0.5rem 2rem;
+
+      .logo {
+        font-size: 1.5rem;
       }
+
+      .hero-section {
+        padding: 2.5rem 1rem 1.5rem;
+      }
+
       .section-title {
         font-size: 2rem;
       }
-      .price-card {
-        min-height: 0;
-        padding: 1.1rem;
-      }
-      .note-banner {
-        font-size: 0.98rem;
-        padding: 0.7rem 0.7rem;
-      }
-    }
-    @media (max-width: 600px) {
-      .nav-container {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.7rem;
-        padding: 0.7rem 0.5rem;
-      }
-      .nav-links {
-        gap: 1rem;
+
+      .section-subtitle {
         font-size: 1rem;
-        margin-bottom: 0.5rem;
       }
-      .nav-actions {
-        gap: 0.5rem;
+
+      .container {
+        padding: 0 1rem 2.5rem;
       }
-      .logo {
-        font-size: 1.2rem;
+
+      .plan-option {
+        padding: 1.75rem 1.25rem;
       }
-      .btn, .btn-primary, .btn-outline {
-        padding: 0.6rem 1.1rem;
-        font-size: 0.98rem;
+
+      .plan-name {
+        font-size: 1.35rem;
       }
+
+      .plan-price {
+        font-size: 2rem;
+      }
+
+      .plan-details {
+        padding: 1.75rem 1.25rem;
+      }
+
+      .plan-details-title {
+        font-size: 1.75rem;
+      }
+
+      .feature-text {
+        font-size: 1rem;
+      }
+
+      .btn {
+        padding: 1.1rem 2.5rem;
+        font-size: 1.05rem;
+      }
+
+      .toggle {
+        width: 100%;
+      }
+
       .toggle-btn {
-        padding: 0.45rem 0.9rem;
-        font-size: 0.98rem;
-      }
-      .section-title {
-        font-size: 1.4rem;
-      }
-      .note-banner {
-        font-size: 0.95rem;
-        padding: 0.6rem 0.5rem;
-      }
-    }
-    @media (max-width: 420px) {
-      .nav-links {
-        flex-direction: column;
-        gap: 0.5rem;
-        width: 100%;
-      }
-      .nav-actions {
-        flex-direction: column;
-        gap: 0.4rem;
-        width: 100%;
-      }
-      .logo {
-        font-size: 1rem;
-      }
-      .price {
-        font-size: 1.4rem;
-      }
-      .price-card {
-        padding: 0.7rem;
-      }
-      .note-banner {
+        flex: 1;
+        padding: 0.7rem 1rem;
         font-size: 0.9rem;
       }
-      .container {
-        padding: 0.7rem 0.2rem 1.2rem;
+    }
+
+    @media (max-width: 480px) {
+      .section-title {
+        font-size: 1.75rem;
+      }
+
+      .plan-price {
+        font-size: 1.75rem;
+      }
+
+      .plan-details-title {
+        font-size: 1.5rem;
       }
     }
   </style>
 </head>
+
 <body>
-  <nav>
+  <nav id="mainNav">
     <div class="nav-container">
       <div class="logo">Tracklet</div>
-      <div class="nav-links">
+      <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">☰</button>
+      <div class="nav-links" id="navLinks">
         <a href="index.html">Home</a>
         <a href="pricing.html">Pricing</a>
         <a href="dashboard.html">Dashboard</a>
         <a href="login.html">Login</a>
       </div>
       <div class="nav-actions">
-        <button id="themeToggle" aria-label="Toggle theme" style="border:none; background:transparent; font-size:1.3rem; cursor:pointer; padding:0.5rem;">🌙</button>
-        <a class="btn btn-primary" href="signup.html">Start Free Trial</a>
+        <button id="themeToggle" aria-label="Toggle theme">🌙</button>
       </div>
     </div>
   </nav>
 
   <main class="container">
-    <section style="text-align:center; margin-top:3rem; margin-bottom:2rem;">
-      <p class="section-subtitle" style="margin-bottom:0.6rem;">Ready to upgrade?</p>
-      <h1 class="section-title" style="font-size:2.8rem;">Choose the plan that fits</h1>
+    <section class="hero-section">
+      <h1 class="section-title">Choose your plan</h1>
+      <p class="section-subtitle">Simple pricing that scales with your business</p>
     </section>
 
     <section id="pricing">
@@ -400,56 +609,45 @@
         </div>
       </div>
 
-      <div class="pricing-grid">
-        <div class="price-card" id="starter-card">
-          <h3>Starter</h3>
-          <div class="price" data-monthly="€150" data-yearly="€1800"><span data-price>€150</span><small>/month</small></div>
-          <p class="subtitle">Perfect for small stores</p>
-          <div class="features-list">
-            <div><span class="check">✓</span> Track up to 50 products</div>
-            <div><span class="check">✓</span> Daily price checks</div>
-            <div><span class="check">✓</span> Browser notifications</div>
-            <div><span class="check">✓</span> Basic dashboard</div>
-            <div><span class="check">✓</span> 14-day free trial</div>
-          </div>
-            <a href="checkout.html?plan=starter" class="btn btn-primary" style="width:100%; margin-top:auto;">Buy Now</a>
+      <!-- Plan Selection -->
+      <div class="plan-selector">
+        <div class="plan-option" data-plan="starter">
+          <div class="plan-name">Starter</div>
+          <div class="plan-price" data-monthly="€150" data-yearly="€1800"><span
+              data-price>€150</span><small>/month</small></div>
+          <div class="plan-description">Perfect for small stores</div>
         </div>
 
-        <div class="price-card popular" id="pro-card">
-          <div class="popular-badge">MOST POPULAR</div>
-          <h3>Professional</h3>
-          <div class="price" data-monthly="€250" data-yearly="€3000"><span data-price>€250</span><small>/month</small></div>
-          <p class="subtitle">For growing businesses</p>
-          <div class="features-list">
-            <div><span class="check">✓</span> Track up to 200 products</div>
-            <div><span class="check">✓</span> Real-time price checks (6x daily)</div>
-            <div><span class="check">✓</span> Browser + SMS notifications</div>
-            <div><span class="check">✓</span> Advanced analytics</div>
-            <div><span class="check">✓</span> Price history charts</div>
-            <div><span class="check">✓</span> Priority support</div>
-            <div><span class="check">✓</span> 14-day free trial</div>
-          </div>
-            <a href="checkout.html?plan=professional" class="btn btn-primary" style="width:100%; margin-top:auto;">Buy Now</a>
+        <div class="plan-option popular selected" data-plan="professional">
+          <div class="plan-name">Professional</div>
+          <div class="plan-price" data-monthly="€250" data-yearly="€3000"><span
+              data-price>€250</span><small>/month</small></div>
+          <div class="plan-description">For growing businesses</div>
         </div>
 
-        <div class="price-card" id="enterprise-card">
-          <h3>Enterprise</h3>
-          <div class="price" data-monthly="€400" data-yearly="€4800"><span data-price>€400</span><small>/month</small></div>
-          <p class="subtitle">For serious sellers</p>
-          <div class="features-list">
-            <div><span class="check">✓</span> Unlimited products</div>
-            <div><span class="check">✓</span> Real-time monitoring</div>
-            <div><span class="check">✓</span> Custom integrations</div>
-            <div><span class="check">✓</span> API access</div>
-            <div><span class="check">✓</span> Dedicated account manager</div>
-            <div><span class="check">✓</span> White-label option</div>
-            <div><span class="check">✓</span> 14-day free trial</div>
-          </div>
-          <a href="mailto:tracklet.official@gmail.com" class="btn btn-outline" style="width:100%; margin-top:1.25rem;">Contact Sales</a>
+        <div class="plan-option" data-plan="enterprise">
+          <div class="plan-name">Enterprise</div>
+          <div class="plan-price" data-monthly="€400" data-yearly="€4800"><span
+              data-price>€400</span><small>/month</small></div>
+          <div class="plan-description">For serious sellers</div>
         </div>
       </div>
 
-      <div class="note-banner">Billing happens in your dashboard. Ready to upgrade? Open your dashboard to view plans at /pricing.</div>
+      <!-- Plan Details -->
+      <div class="plan-details" id="planDetails">
+        <div class="plan-details-header">
+          <h2 class="plan-details-title" id="detailsTitle">Professional</h2>
+          <p class="plan-details-subtitle" id="detailsSubtitle">For growing businesses</p>
+        </div>
+
+        <div class="features-grid" id="featuresList">
+          <!-- Features will be dynamically inserted -->
+        </div>
+
+        <div class="btn-container">
+          <a href="#" class="btn btn-primary" id="ctaButton">Get Started</a>
+        </div>
+      </div>
     </section>
   </main>
 
@@ -458,6 +656,71 @@
   </footer>
 
   <script>
+    // Plan data
+    const plans = {
+      starter: {
+        name: 'Starter',
+        subtitle: 'Perfect for small stores',
+        features: [
+          'Track up to 10 products',
+          'Daily price checks (1x per product)',
+          'Browser notifications',
+          'Basic dashboard',
+          '14-day free trial'
+        ],
+        cta: 'checkout.html?plan=starter',
+        type: 'primary'
+      },
+      professional: {
+        name: 'Professional',
+        subtitle: 'For growing businesses',
+        features: [
+          'Track up to 200 products',
+          'Product price checks up to 6x per product per day',
+          'Browser + SMS notifications',
+          'Advanced analytics',
+          'Price history charts',
+          'Priority support',
+          '14-day free trial'
+        ],
+        cta: 'checkout.html?plan=professional',
+        type: 'primary'
+      },
+      enterprise: {
+        name: 'Enterprise',
+        subtitle: 'For high-volume teams & businesses',
+        features: [
+          'Track up to 1,000 products',
+          'Product price checks up to 32x per day',
+          'Priority real-time monitoring',
+          'Custom integrations & API access',
+          'Advanced reporting & analytics',
+          'Dedicated account manager',
+          'White-label & branding options',
+          'Premium support (SLA)',
+          '14-day free trial'
+        ],
+        cta: 'mailto:tracklet.official@gmail.com?subject=Enterprise%20Plan%20Inquiry',
+        type: 'outline'
+      }
+    };
+
+    // Mobile menu
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const navLinks = document.getElementById('navLinks');
+
+    mobileMenuBtn.addEventListener('click', () => {
+      navLinks.classList.toggle('active');
+      mobileMenuBtn.textContent = navLinks.classList.contains('active') ? '✕' : '☰';
+    });
+
+    navLinks.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        navLinks.classList.remove('active');
+        mobileMenuBtn.textContent = '☰';
+      });
+    });
+
     // Theme toggle
     const themeToggle = document.getElementById('themeToggle');
     function setTheme(theme) {
@@ -485,6 +748,56 @@
         });
       });
     });
+
+    // Plan selection
+    const planOptions = document.querySelectorAll('.plan-option');
+    const detailsTitle = document.getElementById('detailsTitle');
+    const detailsSubtitle = document.getElementById('detailsSubtitle');
+    const featuresList = document.getElementById('featuresList');
+    const ctaButton = document.getElementById('ctaButton');
+
+    function updatePlanDetails(planKey) {
+      const plan = plans[planKey];
+      detailsTitle.textContent = plan.name;
+      detailsSubtitle.textContent = plan.subtitle;
+
+      // Update features
+      featuresList.innerHTML = plan.features.map(feature => `
+        <div class="feature-item">
+          <span class="check">✓</span>
+          <span class="feature-text">${feature}</span>
+        </div>
+      `).join('');
+
+      // Update CTA button
+      ctaButton.href = plan.cta;
+      ctaButton.className = `btn btn-${plan.type}`;
+      ctaButton.textContent = plan.type === 'outline' ? 'Contact Sales' : 'Get Started';
+    }
+
+    planOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        planOptions.forEach(opt => opt.classList.remove('selected'));
+        option.classList.add('selected');
+        const planKey = option.dataset.plan;
+        updatePlanDetails(planKey);
+      });
+    });
+
+    // Initialize with professional plan
+    updatePlanDetails('professional');
+  </script>
+  <script>
+    // Move hamburger to the left of Tracklet
+    document.addEventListener('DOMContentLoaded', function () {
+      const navContainer = document.querySelector('.nav-container');
+      const logo = document.querySelector('.logo');
+      const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+      if (navContainer && logo && mobileMenuBtn) {
+        navContainer.insertBefore(mobileMenuBtn, logo);
+      }
+    });
   </script>
 </body>
+
 </html>
