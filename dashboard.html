@@ -1474,7 +1474,7 @@
       addBtn.textContent = 'Scraping...';
 
       try {
-        // Call backend scraper API if user exists
+        // Optionally scrape price first
         let price = null;
         if (currentUser) {
           try {
@@ -1484,67 +1484,42 @@
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ url })
             });
-
             if (scrapeResponse.ok) {
               const scrapeData = await scrapeResponse.json();
               price = scrapeData.price || null;
             }
-            // Silently ignore 404 or other errors - the /api/scrape endpoint may not exist
           } catch (scrapeError) {
             console.warn('Scraping API not available, continuing without price:', scrapeError);
           }
         }
 
-        // Add item with or without price
-        let items = getItems() || [];
-        // Ensure items is an array
-        if (!Array.isArray(items)) {
-          items = [];
-        }
-        items.push({
-          url,
-          label,
-          price,
-          addedAt: new Date().toISOString()
+        // Send product to backend
+        const createRes = await fetch('https://price-monitor-backend-production-e326.up.railway.app/api/products', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url,
+            name: label,
+            price: price
+            // Add other fields as needed (currency, alert_threshold, etc.)
+          })
         });
-        saveItems(items);
+        if (!createRes.ok) {
+          throw new Error('Failed to add product');
+        }
 
         urlIn.value = '';
         labelIn.value = '';
-
         showToast('Product added successfully!');
-
-        // Update user checks count if scraping happened
-        if (currentUser && price) {
-          currentUser.checksUsed = (currentUser.checksUsed || 0) + 1;
-        }
-
-        // If we are on Tracking tab, reload list. If dashboard, maybe stats update.
+        await renderItems();
         if (!document.getElementById('view-tracking').classList.contains('active')) {
           switchTab('tracking');
         }
       } catch (error) {
-        console.error('Scraping error:', error);
-        showToast('Could not get price. Item added without price.', 'error');
-
-        // Add item without price on error
-        let items = getItems() || [];
-        // Ensure items is an array
-        if (!Array.isArray(items)) {
-          items = [];
-        }
-        items.push({
-          url,
-          label,
-          price: null,
-          addedAt: new Date().toISOString()
-        });
-        saveItems(items);
-
-        urlIn.value = '';
-        labelIn.value = '';
+        console.error('Add product error:', error);
+        showToast('Could not add product.', 'error');
       } finally {
-        // Re-enable button
         addBtn.disabled = false;
         addBtn.textContent = 'Track Product';
       }
