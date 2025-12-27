@@ -1726,9 +1726,19 @@
         if (diff <= 0) {
           if (refreshEl) refreshEl.textContent = 'Ready';
         } else {
-          const min = Math.floor(diff / 60000);
+          const hours = Math.floor(diff / 3600000);
+          const min = Math.floor((diff % 3600000) / 60000);
           const sec = Math.floor((diff % 60000) / 1000);
-          if (refreshEl) refreshEl.textContent = min > 0 ? `${min} min${min !== 1 ? 's' : ''}` : `${sec} sec`;
+          let text = '';
+          if (hours > 0) {
+            text = `${hours} hour${hours !== 1 ? 's' : ''}`;
+            if (min > 0) text += ` ${min} min${min !== 1 ? 's' : ''}`;
+          } else if (min > 0) {
+            text = `${min} min${min !== 1 ? 's' : ''}`;
+          } else {
+            text = `${sec} sec`;
+          }
+          if (refreshEl) refreshEl.textContent = text;
         }
         if (descEl) descEl.textContent = descText;
       }
