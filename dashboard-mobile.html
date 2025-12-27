@@ -1236,14 +1236,13 @@
     </div>
 
     <div id="productModal">
-        <div style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.18); z-index:2000; display:flex; align-items:center; justify-content:center;">
-            <div style="background:var(--card-bg); width:95vw; max-width:420px; border-radius:1.25rem; box-shadow:0 8px 32px rgba(0,0,0,0.18); position:relative; padding:0;">
-                <button onclick="closeProductModal()" style="position:absolute; top:1rem; right:1rem; background:none; border:none; font-size:2rem; cursor:pointer; color:var(--text-secondary); z-index:10;">&times;</button>
-                <div id="modalContent" style="padding:2.5rem 1.5rem 1.5rem 1.5rem; min-height:200px;">
-                    <div style="text-align:center;">
-                        <div style="font-size:2.2rem; margin-bottom:1rem;">⏳</div>
-                        <p style="font-size:1.1rem; color:var(--text-secondary);">Loading...</p>
-                    </div>
+        <div>
+            <button onclick="closeProductModal()"
+                style="position:absolute; top:1rem; right:1rem; background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-secondary);">&times;</button>
+            <div id="modalContent">
+                <div style="text-align:center; padding:2rem;">
+                    <div style="font-size:2rem;">⏳</div>
+                    <p>Loading...</p>
                 </div>
             </div>
         </div>
@@ -1761,7 +1760,7 @@
             const cached = cachedItems.find(i => i.id === productId) || {};
 
             modal.style.display = 'flex';
-            modalContent.innerHTML = `<div style="text-align:center; padding:3rem 1rem;"><div class="loader animate-spin" style="width:40px; height:40px; border:3px solid var(--gray-200); border-top-color:var(--primary); border-radius:50%; margin: 0 auto 1rem;"></div><p style='font-size:1.1rem; color:var(--text-secondary);'>Loading...</p></div>`;
+            modalContent.innerHTML = `<div style="text-align:center; padding:4rem 2rem;"><div class="loader animate-spin" style="width:40px; height:40px; border:3px solid var(--gray-200); border-top-color:var(--primary); border-radius:50%; margin: 0 auto 1rem;"></div><p>Loading...</p></div>`;
 
             try {
                 const productRes = await fetchWithTimeout(`${API_URL}/api/products/${productId}`, { credentials: 'include' });
@@ -1774,39 +1773,26 @@
                 const currencySymbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£';
                 const currentPrice = product.currentPrice || product.current_price || 0;
 
-                     // URL shortener utility
-                     function shortUrl(url) {
-                          try {
-                                const u = new URL(url);
-                                let host = u.hostname.replace(/^www\./, '');
-                                let path = u.pathname.length > 18 ? u.pathname.slice(0, 15) + '…' : u.pathname;
-                                return host + path;
-                          } catch { return url; }
-                     }
-                     const shortProductUrl = shortUrl(product.url);
-                     modalContent.innerHTML = `
-             <div style="padding: 0.5rem 0;">
-                 <h2 style="font-size:1.3rem; font-weight:800; margin-bottom:0.5rem; line-height:1.2; word-break:break-word;">${product.name}</h2>
-                 <div style="font-size:1.7rem; font-weight:800; color:var(--primary); margin-bottom:0.7rem;">${currencySymbol}${parseFloat(currentPrice).toFixed(2)}</div>
-                 <div style="font-size:0.95rem; color:var(--text-secondary); margin-bottom:0.7rem; word-break:break-all;">
-                     <a href="${product.url}" target="_blank" style="color:var(--primary); text-decoration:underline;">${shortProductUrl}</a>
-                 </div>
-                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.7rem; margin-bottom:1.2rem;">
-                     <div style="background:var(--bg); padding:0.8rem; border-radius:10px;">
-                         <div style="font-size:0.8rem; color:var(--text-secondary);">Threshold</div>
-                         <div style="font-weight:700;">${product.alert_threshold ? currencySymbol + product.alert_threshold : 'None'}</div>
-                     </div>
-                      <div style="background:var(--bg); padding:0.8rem; border-radius:10px;">
-                         <div style="font-size:0.8rem; color:var(--text-secondary);">Retailer</div>
-                         <div style="font-weight:700;">${product.retailer || 'Unknown'}</div>
-                     </div>
-                 </div>
-                 <div style="display:flex; gap:0.7rem; justify-content:flex-end;">
-                     <button onclick="deleteItem(${product.id}); closeProductModal();" style="color:var(--danger); background:none; border:none; font-weight:600; cursor:pointer;">Stop Tracking</button>
-                     <a href="${product.url}" target="_blank" class="btn btn-primary">Visit Store</a>
-                 </div>
+                modalContent.innerHTML = `
+          <div style="padding: 1rem 0;">
+             <h2 style="font-size:1.5rem; font-weight:800; margin-bottom:0.5rem; line-height:1.2;">${product.name}</h2>
+             <div style="font-size:2rem; font-weight:800; color:var(--primary); margin-bottom:1rem;">${currencySymbol}${parseFloat(currentPrice).toFixed(2)}</div>
+             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
+                <div style="background:var(--bg); padding:1rem; border-radius:12px;">
+                   <div style="font-size:0.8rem; color:var(--text-secondary);">Threshold</div>
+                   <div style="font-weight:700;">${product.alert_threshold ? currencySymbol + product.alert_threshold : 'None'}</div>
+                </div>
+                 <div style="background:var(--bg); padding:1rem; border-radius:12px;">
+                   <div style="font-size:0.8rem; color:var(--text-secondary);">Retailer</div>
+                   <div style="font-weight:700;">${product.retailer || 'Unknown'}</div>
+                </div>
              </div>
-          `;
+             <div style="display:flex; gap:1rem; justify-content:flex-end;">
+                <button onclick="deleteItem(${product.id}); closeProductModal();" style="color:var(--danger); background:none; border:none; font-weight:600; cursor:pointer;">Stop Tracking</button>
+                <a href="${product.url}" target="_blank" class="btn btn-primary">Visit Store</a>
+             </div>
+          </div>
+        `;
             } catch (e) {
                 modalContent.innerHTML = `<div style="padding:2rem; text-align:center;"><p>Failed to load details. <button onclick="closeProductModal()">Close</button></p></div>`;
             }
