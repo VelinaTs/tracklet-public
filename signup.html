@@ -83,6 +83,7 @@
 
     html {
       scroll-behavior: smooth;
+      font-size: 16px;
     }
 
     body {
@@ -241,6 +242,9 @@
       position: relative;
       z-index: 1;
       animation: fadeInUp 0.6s ease forwards;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
     }
 
     .auth-header {
@@ -273,6 +277,9 @@
     /* ==================== FORM STYLES ==================== */
     .form-group {
       margin-bottom: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
     }
 
     label {
@@ -532,13 +539,80 @@
     }
 
     /* ==================== RESPONSIVE ==================== */
-    @media (max-width: 768px) {
-      .auth-card {
-        padding: 2rem 1.5rem;
+    @media (max-width: 1024px) {
+      .container {
+        max-width: 100vw;
+        padding: 0 1rem;
       }
+      .auth-card {
+        max-width: 90vw;
+      }
+    }
 
+    @media (max-width: 768px) {
+      html {
+        font-size: 15px;
+      }
+      .auth-card {
+        padding: 2rem 1.25rem;
+        max-width: 98vw;
+      }
       .auth-header h1 {
-        font-size: 1.75rem;
+        font-size: 1.5rem;
+      }
+      .nav-container {
+        height: 64px;
+      }
+      nav {
+        min-height: 64px;
+      }
+      .auth-page {
+        padding: 5rem 0.5rem 2rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      html {
+        font-size: 14px;
+      }
+      .auth-card {
+        padding: 1.25rem 0.5rem;
+        border-radius: 1rem;
+        min-width: 0;
+      }
+      .auth-header h1 {
+        font-size: 1.15rem;
+      }
+      .btn,
+      .btn-primary,
+      .btn-google {
+        font-size: 0.95rem;
+        padding: 0.75rem 1rem;
+      }
+      .form-group {
+        margin-bottom: 1rem;
+      }
+      .divider {
+        margin: 1.25rem 0;
+      }
+      .terms {
+        margin-top: 1rem;
+      }
+    }
+
+    @media (max-width: 375px) {
+      .auth-card {
+        padding: 0.75rem 0.25rem;
+        border-radius: 0.75rem;
+      }
+      .auth-header h1 {
+        font-size: 1rem;
+      }
+      .btn,
+      .btn-primary,
+      .btn-google {
+        font-size: 0.9rem;
+        padding: 0.6rem 0.5rem;
       }
     }
   </style>
