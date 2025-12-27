@@ -1699,7 +1699,7 @@
       if (window.nextRefreshTimer) clearInterval(window.nextRefreshTimer);
       const refreshEl = document.getElementById('statNextRefresh');
       const descEl = document.getElementById('statNextRefreshDesc');
-      let intervalMs = 24 * 60 * 60 * 1000, maxPerDay = 1, descText = 'Once daily';
+      let intervalMs = 6 * 60 * 60 * 1000, maxPerDay = 4, descText = 'Up to 4×/day';
       if (currentUser) {
         const tier = (currentUser.subscriptionTier || 'free').toLowerCase();
         if (tier === 'professional') {
