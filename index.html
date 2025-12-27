@@ -1096,7 +1096,7 @@
       font-size: 0.95rem;
     }
 
-    /* ==================== RESPONSIVE ==================== */
+    /* ==================== RESPONSIVE ====================
     @media (max-width: 1200px) {
       .container {
         max-width: 1000px;
@@ -1262,7 +1262,7 @@
         font-size: 0.95rem;
         padding: 0.8rem;
       }
-    }
+    } */
 
     /* ==================== ACCESSIBILITY ==================== */
     @media (prefers-reduced-motion: reduce) {
@@ -1328,7 +1328,7 @@
         <a href="#pricing">Pricing</a>
         <a href="#testimonials">Testimonials</a>
         <a href="#faq">FAQ</a>
-        <a href="mailto:hello@tracklet.com">Contact</a>
+        <a href="mailto:tracklet.official@gmail.com">Contact</a>
       </div>
 
       <div class="nav-actions">
@@ -1761,6 +1761,9 @@
   </footer>
 
   <script>
+    if (/Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+      window.location.href = "index-mobile.html";
+    }
     // ==================== THEME TOGGLE ====================
     const htmlEl = document.documentElement;
     const themeToggle = document.getElementById('themeToggle');
