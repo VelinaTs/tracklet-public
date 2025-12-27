@@ -582,7 +582,9 @@
         }
 
         .mobile-list {
-            display: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
         }
 
         .mobile-toggle {
@@ -599,11 +601,28 @@
         }
 
         .fab-container {
-            display: none;
+            display: block;
+            position: fixed;
+            bottom: calc(var(--nav-height) + 1.25rem + env(safe-area-inset-bottom));
+            right: 1.25rem;
+            z-index: 998;
         }
 
         .mobile-header-wrapper {
-            display: none;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: var(--nav-height);
+            background: rgba(255, 255, 255, 0.85);
+            /* Glass Light */
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            z-index: 999;
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
         @media (max-width: 768px) {
@@ -1159,8 +1178,8 @@
                                     style="width:100%; color:var(--danger); border-color:var(--border);"
                                     onclick="document.getElementById('logoutBtn').click()">Log Out</button>
                             </div>
-                            <div style="text-align:right; display:none;">
-                                <button class="btn btn-primary" id="saveSettingsBtn">Save Changes</button>
+                            <div style="text-align:right; margin-top:1rem;">
+                                <button class="btn btn-primary" id="saveSettingsBtn" style="width:100%;">Save Changes</button>
                             </div>
                         </div>
                     </div>
