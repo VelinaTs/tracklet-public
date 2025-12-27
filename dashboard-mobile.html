@@ -559,8 +559,26 @@
             background: var(--gray-300);
             border-radius: 99px;
             position: relative;
-            transition: 0.2s;
+            transition: background 0.2s;
             cursor: pointer;
+        }
+        .slider::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            transition: left 0.2s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+        .switch input:checked + .slider {
+            background: var(--primary);
+        }
+        .switch input:checked + .slider::before {
+            left: 23px;
         }
 
         .mobile-list {
@@ -1489,150 +1507,111 @@
             initChart();
         }
 
-        document.getElementById('autoRefreshToggle').addEventListener('change', () => {
-            const s = JSON.parse(localStorage.getItem(STORAGE_KEY_SETTINGS)) || {};
-            s.autoRefresh = document.getElementById('autoRefreshToggle').checked;
-            localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(s));
-            applyAutoRefreshSetting();
-        });
+        // ...existing code...
+                async function renderItems() {
+                        const items = await getItems();
+                        const tbody = document.getElementById('itemsTableBody');
+                        const mobileList = document.getElementById('itemsMobileList');
+                        const emptyState = document.getElementById('emptyState');
+                        const tableContainer = document.querySelector('.desktop-table');
 
-        function applyAutoRefreshSetting() {
-            const s = JSON.parse(localStorage.getItem(STORAGE_KEY_SETTINGS)) || {};
-            const autoRefresh = s.autoRefresh !== false; // default true
+                        tbody.innerHTML = '';
+                        mobileList.innerHTML = '';
 
-            // Hide or show all refresh buttons
-            document.querySelectorAll('.btn-icon, .btn-outline').forEach(btn => {
-                if (btn.title && btn.title.toLowerCase().includes('refresh')) {
-                    btn.style.display = autoRefresh ? 'none' : '';
+                        if (items.length === 0) {
+                                emptyState.style.display = 'block';
+                                tableContainer.style.display = 'none';
+                                mobileList.style.display = 'none';
+                        } else {
+                                emptyState.style.display = 'none';
+                                if (window.innerWidth > 768) tableContainer.style.display = 'block';
+                                mobileList.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
+
+                                items.forEach((item, index) => {
+                                        let domain = 'Unknown';
+                                        try { domain = new URL(item.url).hostname.replace('www.', ''); } catch (e) { }
+
+                                        const currency = item.currency || 'USD';
+                                        const currencySymbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : currency + ' ';
+                                        const currentPrice = item.currentPrice || item.current_price;
+
+                                        let priceDisplay;
+                                        if (currentPrice !== null && currentPrice !== undefined && currentPrice !== '') {
+                                                const priceValue = parseFloat(currentPrice);
+                                                if (!isNaN(priceValue)) {
+                                                        priceDisplay = '<strong style="color:var(--success);">' + currencySymbol + priceValue.toFixed(2) + '</strong>';
+                                                } else { priceDisplay = '<span style="color:var(--text-secondary);">-</span>'; }
+                                        } else { priceDisplay = '<span style="color:var(--text-secondary);">-</span>'; }
+
+                                        const lastCheckedTime = item.lastChecked || item.last_checked;
+                                        const lastChecked = lastCheckedTime ? new Date(lastCheckedTime).toLocaleDateString() : 'Never';
+                                        const alertEnabled = item.alertEnabled !== undefined ? item.alertEnabled : item.alert_enabled;
+
+                                        const alertStatus = alertEnabled
+                                                ? `<span class="status-badge status-active"><span class="status-dot"></span> Alert Active</span>`
+                                                : `<span class="status-badge" style="background:var(--gray-100); color:var(--text-secondary);">No Alert</span>`;
+
+                                        const imageUrl = item.imageUrl || item.image_url;
+                                        const imageHtml = imageUrl
+                                                ? `<img src="${imageUrl}" alt="${item.name}" style="width:40px; height:40px; object-fit:cover; border-radius:8px; margin-right:0.75rem;">`
+                                                : `<div style="width:40px; height:40px; background:var(--gray-200); border-radius:8px; margin-right:0.75rem; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">📦</div>`;
+
+                                        // Desktop Row
+                                        const tr = document.createElement('tr');
+                                        tr.className = 'item-row';
+                                        tr.style.cursor = 'pointer';
+                                        tr.innerHTML = `
+                        <td>
+                            <div style="display:flex; align-items:center;">
+                                ${imageHtml}
+                                <div>
+                                    <div style="font-weight:600; color:var(--text);">${item.name || item.label || 'Untitled Product'}</div>
+                                    <div style="font-size:0.8rem; color:var(--text-secondary);">${item.retailer || domain}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><a href="${item.url}" target="_blank" style="color:var(--primary); text-decoration:none;" onclick="event.stopPropagation();">View ↗</a></td>
+                        <td>${alertStatus}</td>
+                        <td>
+                            ${priceDisplay}
+                            ${(item.alertThreshold || item.alert_threshold) ? '<br><span style="font-size:0.75rem; color:var(--text-secondary);">Alert: ' + currencySymbol + parseFloat(item.alertThreshold || item.alert_threshold).toFixed(2) + '</span>' : ''}
+                        </td>
+                        <td><span style="font-size:0.85rem; color:var(--text-secondary);">${lastChecked}</span></td>
+                        <td style="text-align:right;">
+                            <button class="btn-icon" onclick="(function(e){e.stopPropagation();refreshAndViewProduct('${item.id !== undefined ? item.id : index}');})(event)" title="Refresh" style="color:var(--primary); font-size:1.2rem;">🔄️</button>
+                            <button class="btn-icon" onclick="event.stopPropagation(); deleteItem('${item.id !== undefined ? item.id : index}')" title="Delete" style="color:var(--danger);"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                        </td>
+                    `;
+                                        tr.addEventListener('click', () => viewProductDetails(item.id || index));
+                                        tbody.appendChild(tr);
+
+                                        // Mobile Card (Updated for Banger Look)
+                                        const mCard = document.createElement('div');
+                                        mCard.className = 'mobile-item';
+                                        mCard.onclick = () => viewProductDetails(item.id || index);
+
+                                        // Add item-level refresh button for mobile, with id for targeting
+                                        const refreshBtnId = `refreshBtn-${item.id || index}`;
+                                        mCard.innerHTML = `
+                        <div style="flex-shrink:0;">
+                                ${imageUrl ? `<img src="${imageUrl}" style="width:60px; height:60px; object-fit:cover; border-radius:12px;">` : `<div style="width:60px; height:60px; background:var(--gray-200); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.5rem;">📦</div>`}
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                                <div style="font-weight:700; font-size:1rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-bottom:0.2rem;">${item.name || item.label || 'Untitled'}</div>
+                                <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.4rem;">${item.retailer || domain}</div>
+                                <div style="display:flex; align-items:center; justify-content:space-between;">
+                                        <div style="font-size:1.1rem;">${priceDisplay}</div>
+                                        ${alertEnabled ? '<span style="font-size:0.75rem; background:rgba(16,185,129,0.15); color:var(--success); padding:2px 8px; border-radius:4px; font-weight:600;">Active</span>' : ''}
+                                </div>
+                        </div>
+                        <button id="${refreshBtnId}" class="btn-icon" title="Refresh" style="position:absolute; top:10px; right:10px; color:var(--primary); font-size:1.2rem; background:white; border:1px solid var(--border); border-radius:50%; box-shadow:0 2px 8px rgba(0,0,0,0.07);" onclick="event.stopPropagation(); refreshAndViewProduct('${item.id !== undefined ? item.id : index}');">🔄️</button>
+                        <button class="btn-icon" onclick="deleteItem('${item.id !== undefined ? item.id : index}')" title="Delete" style="position:absolute; top:10px; right:50px; color:var(--danger); font-size:1.2rem; background:white; border:1px solid var(--border); border-radius:50%; box-shadow:0 2px 8px rgba(0,0,0,0.07);">🗑️</button>
+                    `;
+                                        mobileList.appendChild(mCard);
+                                });
+                        }
+                        updateStats();
                 }
-            });
-
-            // If autoRefresh is enabled, set up auto-refresh logic
-            if (autoRefresh) {
-                setupAutoRefresh();
-            } else {
-                clearAutoRefresh();
-            }
-        }
-
-        // Auto-refresh logic
-        let autoRefreshInterval = null;
-
-        function setupAutoRefresh() {
-            clearAutoRefresh();
-            // Check every 30 seconds if "Next Sync" is "Ready"
-            autoRefreshInterval = setInterval(() => {
-                const refreshEl = document.getElementById('statNextRefresh');
-                if (refreshEl && refreshEl.textContent.trim().toLowerCase() === 'ready') {
-                    doFullRefresh();
-                }
-            }, 30000);
-        }
-
-        function clearAutoRefresh() {
-            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
-            autoRefreshInterval = null;
-        }
-        async function renderItems() {
-            const items = await getItems();
-            const tbody = document.getElementById('itemsTableBody');
-            const mobileList = document.getElementById('itemsMobileList');
-            const emptyState = document.getElementById('emptyState');
-            const tableContainer = document.querySelector('.desktop-table');
-
-            tbody.innerHTML = '';
-            mobileList.innerHTML = '';
-
-            if (items.length === 0) {
-                emptyState.style.display = 'block';
-                tableContainer.style.display = 'none';
-                mobileList.style.display = 'none';
-            } else {
-                emptyState.style.display = 'none';
-                if (window.innerWidth > 768) tableContainer.style.display = 'block';
-                mobileList.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
-
-                items.forEach((item, index) => {
-                    let domain = 'Unknown';
-                    try { domain = new URL(item.url).hostname.replace('www.', ''); } catch (e) { }
-
-                    const currency = item.currency || 'USD';
-                    const currencySymbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : currency + ' ';
-                    const currentPrice = item.currentPrice || item.current_price;
-
-                    let priceDisplay;
-                    if (currentPrice !== null && currentPrice !== undefined && currentPrice !== '') {
-                        const priceValue = parseFloat(currentPrice);
-                        if (!isNaN(priceValue)) {
-                            priceDisplay = '<strong style="color:var(--success);">' + currencySymbol + priceValue.toFixed(2) + '</strong>';
-                        } else { priceDisplay = '<span style="color:var(--text-secondary);">-</span>'; }
-                    } else { priceDisplay = '<span style="color:var(--text-secondary);">-</span>'; }
-
-                    const lastCheckedTime = item.lastChecked || item.last_checked;
-                    const lastChecked = lastCheckedTime ? new Date(lastCheckedTime).toLocaleDateString() : 'Never';
-                    const alertEnabled = item.alertEnabled !== undefined ? item.alertEnabled : item.alert_enabled;
-
-                    const alertStatus = alertEnabled
-                        ? `<span class="status-badge status-active"><span class="status-dot"></span> Alert Active</span>`
-                        : `<span class="status-badge" style="background:var(--gray-100); color:var(--text-secondary);">No Alert</span>`;
-
-                    const imageUrl = item.imageUrl || item.image_url;
-                    const imageHtml = imageUrl
-                        ? `<img src="${imageUrl}" alt="${item.name}" style="width:40px; height:40px; object-fit:cover; border-radius:8px; margin-right:0.75rem;">`
-                        : `<div style="width:40px; height:40px; background:var(--gray-200); border-radius:8px; margin-right:0.75rem; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">📦</div>`;
-
-                    // Desktop Row
-                    const tr = document.createElement('tr');
-                    tr.className = 'item-row';
-                    tr.style.cursor = 'pointer';
-                    tr.innerHTML = `
-            <td>
-              <div style="display:flex; align-items:center;">
-                ${imageHtml}
-                <div>
-                  <div style="font-weight:600; color:var(--text);">${item.name || item.label || 'Untitled Product'}</div>
-                  <div style="font-size:0.8rem; color:var(--text-secondary);">${item.retailer || domain}</div>
-                </div>
-              </div>
-            </td>
-            <td><a href="${item.url}" target="_blank" style="color:var(--primary); text-decoration:none;" onclick="event.stopPropagation();">View ↗</a></td>
-            <td>${alertStatus}</td>
-            <td>
-              ${priceDisplay}
-              ${(item.alertThreshold || item.alert_threshold) ? '<br><span style="font-size:0.75rem; color:var(--text-secondary);">Alert: ' + currencySymbol + parseFloat(item.alertThreshold || item.alert_threshold).toFixed(2) + '</span>' : ''}
-            </td>
-            <td><span style="font-size:0.85rem; color:var(--text-secondary);">${lastChecked}</span></td>
-            <td style="text-align:right;">
-              <button class="btn-icon" onclick="(function(e){e.stopPropagation();refreshAndViewProduct(${item.id || index});})(event)" title="Refresh" style="color:var(--primary); font-size:1.2rem;">🔄️</button>
-              <button class="btn-icon" onclick="event.stopPropagation(); deleteItem(${item.id || index})" title="Delete" style="color:var(--danger);"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
-            </td>
-          `;
-                    tr.addEventListener('click', () => viewProductDetails(item.id || index));
-                    tbody.appendChild(tr);
-
-                    // Mobile Card (Updated for Banger Look)
-                    const mCard = document.createElement('div');
-                    mCard.className = 'mobile-item';
-                    mCard.onclick = () => viewProductDetails(item.id || index);
-
-                    mCard.innerHTML = `
-            <div style="flex-shrink:0;">
-                ${imageUrl ? `<img src="${imageUrl}" style="width:60px; height:60px; object-fit:cover; border-radius:12px;">` : `<div style="width:60px; height:60px; background:var(--gray-200); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.5rem;">📦</div>`}
-            </div>
-            <div style="flex:1; min-width:0;">
-                <div style="font-weight:700; font-size:1rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-bottom:0.2rem;">${item.name || item.label || 'Untitled'}</div>
-                <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.4rem;">${item.retailer || domain}</div>
-                <div style="display:flex; align-items:center; justify-content:space-between;">
-                    <div style="font-size:1.1rem;">${priceDisplay}</div>
-                    ${alertEnabled ? '<span style="font-size:0.75rem; background:rgba(16,185,129,0.15); color:var(--success); padding:2px 8px; border-radius:4px; font-weight:600;">Active</span>' : ''}
-                </div>
-            </div>
-          `;
-                    mobileList.appendChild(mCard);
-                });
-            }
-            updateStats();
-        }
 
         document.getElementById('addItemBtn').addEventListener('click', async () => {
             const urlIn = document.getElementById('newItemUrl');
@@ -1824,36 +1803,115 @@
             window.nextRefreshTimer = setInterval(updateCountdown, 60000);
         }
 
-        function loadSettings() {
-            const s = JSON.parse(localStorage.getItem(STORAGE_KEY_SETTINGS)) || { notifications: false, currency: 'USD' };
-            document.getElementById('notificationsToggle').checked = s.notifications;
-            document.getElementById('currency').value = s.currency;
-            document.getElementById('autoRefreshToggle').checked = s.autoRefresh !== false; // default true
-            applyAutoRefreshSetting();
-            setupBrowserNotifications();
+
+        // ========== BACKEND SETTINGS MIGRATION ========== //
+        async function fetchUserSettings() {
+            try {
+                const res = await fetch(API_URL + '/api/settings', { credentials: 'include' });
+                const data = await res.json();
+                if (data.success) {
+                    window.userSettings = data.settings;
+                    return data.settings;
+                }
+                throw new Error('Failed to fetch user settings');
+            } catch (e) {
+                window.userSettings = { notifications_enabled: false, currency: 'USD', auto_refresh_enabled: true };
+                return window.userSettings;
+            }
         }
+
+        function renderSettingsUI() {
+            const s = window.userSettings || { notifications_enabled: false, currency: 'USD', auto_refresh_enabled: true };
+            document.getElementById('notificationsToggle').checked = s.notifications_enabled;
+            document.getElementById('currency').value = s.currency;
+            document.getElementById('autoRefreshToggle').checked = s.auto_refresh_enabled !== false;
+            setupBrowserNotifications();
+            applyAutoRefreshSetting();
+        }
+
+        async function saveUserSettings() {
+            const body = {
+                notifications_enabled: document.getElementById('notificationsToggle').checked,
+                currency: document.getElementById('currency').value,
+                auto_refresh_enabled: document.getElementById('autoRefreshToggle').checked
+            };
+            try {
+                const res = await fetch(API_URL + '/api/settings', {
+                    method: 'PUT',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    window.userSettings = data.settings;
+                    showToast('Settings saved successfully');
+                    renderSettingsUI();
+                } else {
+                    showToast('Failed to save settings', 'error');
+                }
+            } catch (e) {
+                showToast('Failed to save settings', 'error');
+            }
+        }
+
+        // On load, fetch settings from backend and render UI
+        document.addEventListener('DOMContentLoaded', async function () {
+            try {
+                await fetchUserSettings();
+                renderSettingsUI();
+            } catch (e) {
+                showToast('Failed to load user settings', 'error');
+            }
+        });
+
+        document.getElementById('saveSettingsBtn').addEventListener('click', saveUserSettings);
+
+        document.getElementById('currency').addEventListener('change', function () { document.getElementById('saveSettingsBtn').click(); });
+
+        document.getElementById('autoRefreshToggle').addEventListener('change', () => {
+            saveUserSettings();
+        });
+
+        function applyAutoRefreshSetting() {
+            const s = window.userSettings || { auto_refresh_enabled: true };
+            const autoRefresh = s.auto_refresh_enabled !== false; // default true
+
+            // Hide or show all refresh buttons (global and item-level)
+            document.querySelectorAll('.btn-icon, .btn-outline').forEach(btn => {
+                if (btn.title && btn.title.toLowerCase().includes('refresh')) {
+                    btn.style.display = autoRefresh ? 'none' : '';
+                }
+            });
+            // Hide item-level refresh buttons in mobile cards
+            document.querySelectorAll('[id^="refreshBtn-"]').forEach(btn => {
+                btn.style.display = autoRefresh ? 'none' : '';
+            });
+
+            // If autoRefresh is enabled, set up auto-refresh logic
+            if (autoRefresh) {
+                setupAutoRefresh();
+            } else {
+                clearAutoRefresh();
+            }
+        }
+
+        // ========== END BACKEND SETTINGS MIGRATION ========== //
+
 
         let notificationPollInterval = null;
         function setupBrowserNotifications() {
             const toggle = document.getElementById('notificationsToggle');
+            if (!toggle) return;
             toggle.addEventListener('change', () => {
-                const enabled = toggle.checked;
-                const s = JSON.parse(localStorage.getItem(STORAGE_KEY_SETTINGS)) || {};
-                s.notifications = enabled;
-                localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(s));
-                if (enabled) requestNotificationPermission();
+                saveUserSettings();
+                if (toggle.checked) requestNotificationPermission();
             });
+            if (toggle.checked) requestNotificationPermission();
         }
         function requestNotificationPermission() { if (window.Notification && Notification.permission === 'default') Notification.requestPermission(); }
 
-        document.getElementById('saveSettingsBtn').addEventListener('click', () => {
-            const s = { notifications: document.getElementById('notificationsToggle').checked, currency: document.getElementById('currency').value };
-            localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(s));
-            showToast('Settings saved successfully');
-        });
 
-        // Auto-save setting for mobile smoothness
-        document.getElementById('currency').addEventListener('change', function () { document.getElementById('saveSettingsBtn').click(); });
 
         function showToast(msg, type = 'success') {
             const toast = document.getElementById('toast');
@@ -1993,18 +2051,7 @@
             // ... (Rest of analytics logic same)
         }
 
-        // Toggle slider fix
-        document.querySelector('.switch input').addEventListener('change', function () {
-            const slider = this.nextElementSibling;
-            if (this.checked) {
-                slider.style.background = 'var(--primary)';
-                slider.innerHTML = '<div style="position:absolute; top:3px; left:23px; width:18px; height:18px; background:white; border-radius:50%; transition:0.2s"></div>';
-            } else {
-                slider.style.background = 'var(--gray-300)';
-                slider.innerHTML = '<div style="position:absolute; top:3px; left:3px; width:18px; height:18px; background:white; border-radius:50%; transition:0.2s"></div>';
-            }
-        });
-        document.querySelector('.switch input').dispatchEvent(new Event('change'));
+        // No JS needed for slider visual; handled by CSS above
 
         // Modal Close Helpers
         window.closeProductModal = function () {
