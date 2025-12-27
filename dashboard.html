@@ -588,164 +588,6 @@
       }
     }
 
-    @media (max-width: 768px) {
-      body {
-        flex-direction: column;
-      }
-
-      aside {
-        position: fixed;
-        left: -100%;
-        top: 0;
-        width: 80vw;
-        max-width: 320px;
-        height: 100vh;
-        z-index: 100;
-        box-shadow: var(--shadow-xl);
-      }
-
-      aside.open {
-        left: 0;
-      }
-
-      body.sidebar-open::after {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 99;
-      }
-
-      .mobile-toggle {
-        display: block;
-        font-size: 1.5rem;
-        background: none;
-        border: none;
-        color: var(--text);
-        cursor: pointer;
-      }
-
-      header {
-        padding: 0 1rem;
-        height: 60px;
-      }
-
-      .header-title {
-        font-size: 1.25rem;
-      }
-
-      .header-actions {
-        gap: 0.5rem;
-      }
-
-      .btn {
-        padding: 0.5rem 1rem;
-        font-size: 0.85rem;
-      }
-
-      .scroll-area {
-        padding: 1rem;
-      }
-
-      .stats-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-      }
-
-      .stat-value {
-        font-size: 1.75rem;
-      }
-
-      .card {
-        padding: 1rem;
-      }
-
-      .chart-container {
-        height: 250px;
-      }
-
-      .chart-header {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .chart-controls {
-        width: 100%;
-      }
-
-      .chart-select {
-        flex: 1;
-      }
-
-      .input-group {
-        flex-direction: column;
-      }
-
-      .desktop-table {
-        display: none;
-      }
-
-      .mobile-list {
-        display: block;
-      }
-
-      .toast {
-        bottom: 1rem;
-        right: 1rem;
-        left: 1rem;
-        max-width: none;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .scroll-area {
-        padding: 0.75rem;
-      }
-
-      .card {
-        padding: 0.875rem;
-        border-radius: 0.75rem;
-      }
-
-      .stats-grid {
-        gap: 0.75rem;
-      }
-
-      .stat-value {
-        font-size: 1.5rem;
-      }
-
-      .chart-container {
-        height: 200px;
-      }
-
-      header {
-        padding: 0 0.75rem;
-      }
-
-      .btn {
-        width: 100%;
-      }
-
-      .header-actions .btn:not(.btn-icon) {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.8rem;
-      }
-    }
-
-    @media (min-width: 769px) {
-      .desktop-table {
-        display: block;
-      }
-
-      .mobile-list {
-        display: none;
-      }
-    }
-
     /* MODAL */
     #productModal {
       display: none;
@@ -770,20 +612,6 @@
       overflow-y: auto;
       padding: 2rem;
       position: relative;
-    }
-
-    @media (max-width: 768px) {
-      #productModal>div {
-        padding: 1.5rem;
-        max-height: 95vh;
-      }
-    }
-
-    @media (max-width: 480px) {
-      #productModal>div {
-        padding: 1rem;
-        border-radius: 8px;
-      }
     }
 
     /* Refresh button disabled state */
@@ -1103,7 +931,9 @@
   <script>
     // All your existing JavaScript code here - keeping it exactly the same
     // I'll include the complete script from your original file
-
+    if (/Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+          window.location.href = "dashboard-mobile.html";
+    }
     function doFullRefresh() {
       const dashBtn = document.getElementById('refreshDashboardBtn');
       if (dashBtn && dashBtn.classList.contains('refresh-disabled')) return;
