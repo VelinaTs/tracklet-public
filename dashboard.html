@@ -1300,12 +1300,15 @@
 
         if (response.ok) {
           const data = await response.json();
+          console.log('DEBUG: /api/products response:', data);
           // Handle different response structures - ensure we always get an array
           let items = Array.isArray(data) ? data : (data.products || data.data || data.items || []);
-          // If still not an array, return empty array
           if (!Array.isArray(items)) {
             console.warn('API returned non-array items:', items);
             items = [];
+          }
+          if (!items.length) {
+            console.warn('No products found in API response. Full response:', data);
           }
           cachedItems = items;
           console.log('Fetched products:', cachedItems.length, 'First product:', cachedItems[0]);
@@ -1508,19 +1511,22 @@
 
       try {
         // Send product to backend
+        const body = {
+          url,
+          name: label
+        };
+        console.log('DEBUG: Add product request body:', body);
         const createRes = await fetch('https://price-monitor-backend-production-e326.up.railway.app/api/products', {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            url,
-            name: label,
-            price: price,
-            // Add other fields as needed (currency, alert_threshold, etc.)
-          })
+          body: JSON.stringify(body)
         });
+        let createResJson = null;
+        try { createResJson = await createRes.json(); } catch (e) { createResJson = null; }
+        console.log('DEBUG: Add product response:', createRes.status, createResJson);
         if (!createRes.ok) {
-          throw new Error('Failed to add product');
+          throw new Error('Failed to add product: ' + (createResJson && createResJson.message ? createResJson.message : createRes.status));
         }
 
         urlIn.value = '';
