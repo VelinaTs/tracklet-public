@@ -776,6 +776,9 @@
           onclick="switchTab('tracking'); document.getElementById('newItemUrl').focus();">
           + New Item
         </button>
+        <button class="btn btn-outline" id="refreshDashboardBtn" title="Refresh Data" style="margin-left:0.5rem;">
+          <span style="display:inline-flex;align-items:center;gap:0.4em;">🔄 Refresh</span>
+        </button>
         <button class="btn-icon theme-toggle" id="themeToggle">🌙</button>
       </div>
     </header>
@@ -847,7 +850,12 @@
         </div>
 
         <div id="view-tracking" class="view-section">
-          <div class="card" style="margin-bottom: 2rem;">
+          <div class="card" style="margin-bottom: 2rem; display:flex; align-items:center; justify-content:space-between;">
+            <div><h3 style="margin:0;">Add a New Tracker</h3></div>
+            <button class="btn btn-outline" id="refreshTrackingBtn" title="Refresh Data">
+              <span style="display:inline-flex;align-items:center;gap:0.4em;">🔄 Refresh</span>
+            </button>
+          </div>
             <h3>Add a New Tracker</h3>
             <p style="color:var(--text-secondary); margin-bottom:1rem; font-size:0.95rem;">Paste a product URL from any
               supported store to start monitoring.</p>
@@ -990,6 +998,27 @@
 
   <script src="auth.v4.js?v=4"></script>
   <script>
+        // Refresh Button Logic
+        function doFullRefresh() {
+          // Show loading spinner if available
+          if (loading) {
+            loading.style.opacity = '1';
+            loading.style.display = 'flex';
+          }
+          // Force reload items and stats
+          renderItems().then(() => {
+            updateStats();
+            if (loading) {
+              setTimeout(() => { loading.style.opacity = '0'; setTimeout(() => loading.style.display = 'none', 300); }, 500);
+            }
+          });
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+          const dashBtn = document.getElementById('refreshDashboardBtn');
+          if (dashBtn) dashBtn.onclick = doFullRefresh;
+          const trackBtn = document.getElementById('refreshTrackingBtn');
+          if (trackBtn) trackBtn.onclick = doFullRefresh;
+        });
     // ==================== INITIALIZATION ====================
     const API_URL = 'https://price-monitor-backend-production-e326.up.railway.app';
     const PROJECT_BASE = '/tracklet-public';
