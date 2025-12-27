@@ -897,6 +897,12 @@
                 </select>
               </div>
 
+              <div style="display:flex; align-items:center; gap:1rem;">
+                <label for="autoRefreshToggle" style="font-weight:600;">Automatic Data Refresh</label>
+                <input type="checkbox" id="autoRefreshToggle" checked />
+                <span id="autoRefreshLabel" style="color:var(--text-secondary); font-size:0.95rem;">(Recommended)</span>
+              </div>
+
               <hr style="border:0; border-top:1px solid var(--border);">
 
               <div style="text-align:right;">
@@ -932,8 +938,9 @@
     // All your existing JavaScript code here - keeping it exactly the same
     // I'll include the complete script from your original file
     if (/Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-          window.location.href = "dashboard-mobile.html";
+      window.location.href = "dashboard-mobile.html";
     }
+
     function doFullRefresh() {
       const dashBtn = document.getElementById('refreshDashboardBtn');
       if (dashBtn && dashBtn.classList.contains('refresh-disabled')) return;
@@ -1351,6 +1358,14 @@
       const urlIn = document.getElementById('newItemUrl');
       const labelIn = document.getElementById('newItemLabel');
       const addBtn = document.getElementById('addItemBtn');
+      const tier = (currentUser && (currentUser.subscriptionTier || currentUser.subscription_tier || 'free')).toLowerCase();
+      const addLimit = getAddLimitByTier(tier);
+      const addCount = getAddCountToday();
+
+      if (addCount >= addLimit) {
+        showToast(`You have reached your daily add limit (${addLimit} products) for your plan.`, 'error');
+        return;
+      }
 
       const url = urlIn.value.trim();
       const label = labelIn.value.trim();
@@ -1433,6 +1448,7 @@
         addBtn.disabled = false;
         addBtn.textContent = 'Track Product';
       }
+      incrementAddCountToday();
     });
 
     window.deleteItem = async function (itemId) {
@@ -1708,7 +1724,7 @@
       const s = JSON.parse(localStorage.getItem(STORAGE_KEY_SETTINGS)) || { notifications: false, currency: 'USD' };
       document.getElementById('notificationsToggle').checked = s.notifications;
       document.getElementById('currency').value = s.currency;
-
+      document.getElementById('autoRefreshToggle').checked = s.autoRefresh !== false; // default true
       if (currentUser) {
         const tier = currentUser.subscriptionTier || 'free';
         let frequency = 'Every 60 minutes';
@@ -1724,10 +1740,61 @@
       }
 
       setupBrowserNotifications();
+      applyAutoRefreshSetting();
     }
-
+    document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+      const s = {
+        notifications: document.getElementById('notificationsToggle').checked,
+        currency: document.getElementById('currency').value,
+        autoRefresh: document.getElementById('autoRefreshToggle').checked
+      };
+      localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(s));
+      showToast('Settings saved successfully');
+      applyAutoRefreshSetting();
+    });
     let notificationPollInterval = null;
 
+    function applyAutoRefreshSetting() {
+      const s = JSON.parse(localStorage.getItem(STORAGE_KEY_SETTINGS)) || {};
+      const autoRefresh = s.autoRefresh !== false; // default true
+
+      // Hide or show all refresh buttons
+      document.querySelectorAll('.btn-icon, .btn-outline').forEach(btn => {
+        if (btn.title && btn.title.toLowerCase().includes('refresh')) {
+          btn.style.display = autoRefresh ? 'none' : '';
+        }
+      });
+
+      // If autoRefresh is enabled, set up auto-refresh logic
+      if (autoRefresh) {
+        setupAutoRefresh();
+      } else {
+        clearAutoRefresh();
+      }
+    }
+
+    let autoRefreshInterval = null;
+
+    function setupAutoRefresh() {
+      clearAutoRefresh();
+      // Check every 30 seconds if "Next Sync" is "Ready"
+      autoRefreshInterval = setInterval(() => {
+        const refreshEl = document.getElementById('statNextRefresh');
+        if (refreshEl && refreshEl.textContent.trim().toLowerCase() === 'ready') {
+          doFullRefresh();
+        }
+      }, 30000);
+    }
+
+    function clearAutoRefresh() {
+      if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+      autoRefreshInterval = null;
+    }
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+      applyAutoRefreshSetting();
+    });
     function setupBrowserNotifications() {
       const toggle = document.getElementById('notificationsToggle');
       if (!toggle) return;
@@ -1869,7 +1936,29 @@
         chartInstance.destroy();
         chartInstance = null;
       }
-
+      function getTodayKey() {
+        const d = new Date();
+        return d.toISOString().slice(0, 10);
+      }
+      function getAddLimitByTier(tier) {
+        if (!tier || tier === 'free' || tier === 'trial' || tier === 'starter') return 10;
+        if (tier === 'professional') return 100;
+        if (tier === 'enterprise') return 300;
+        return 10;
+      }
+      function getAddCountToday() {
+        const key = 'tracklet_add_count';
+        const today = getTodayKey();
+        const data = JSON.parse(localStorage.getItem(key) || '{}');
+        return data[today] || 0;
+      }
+      function incrementAddCountToday() {
+        const key = 'tracklet_add_count';
+        const today = getTodayKey();
+        const data = JSON.parse(localStorage.getItem(key) || '{}');
+        data[today] = (data[today] || 0) + 1;
+        localStorage.setItem(key, JSON.stringify(data));
+      }
       function getCurrencySymbol() {
         try {
           const el = document.getElementById('currency');
