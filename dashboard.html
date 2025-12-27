@@ -1489,9 +1489,8 @@
           let next = 0;
           if (last) {
             next = new Date(last).getTime() + intervalMs;
-          } else {
-            next = 0;
           }
+          // Track if any button is disabled
           if (!last || next <= now) {
             btn.disabled = false;
             btn.classList.remove('refresh-disabled');
