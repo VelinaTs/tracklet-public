@@ -1507,7 +1507,14 @@
         // Top refresh button logic
         const dashBtn = document.getElementById('refreshDashboardBtn');
         if (dashBtn) {
-          if (anyReady) {
+          // If ANY per-item refresh is disabled, grey out the top button too
+          const anyDisabled = Array.from(document.querySelectorAll('button[id^="refreshBtn-"]')).some(btn => btn.disabled);
+          if (anyDisabled) {
+            dashBtn.disabled = true;
+            dashBtn.classList.add('refresh-disabled');
+            dashBtn.style.opacity = '0.5';
+            dashBtn.title = 'Refresh not ready';
+          } else if (anyReady) {
             dashBtn.disabled = false;
             dashBtn.classList.remove('refresh-disabled');
             dashBtn.style.opacity = '1';
