@@ -1,3 +1,20 @@
+        // Add limit helpers (match desktop dashboard)
+        function getTodayKey() {
+            const d = new Date();
+            return d.toISOString().slice(0, 10);
+        }
+        function getAddLimitByTier(tier) {
+            if (!tier || tier === 'free' || tier === 'trial' || tier === 'starter') return 10;
+            if (tier === 'professional') return 100;
+            if (tier === 'enterprise') return 300;
+            return 10;
+        }
+        function getAddCountToday() {
+            const key = 'tracklet_add_count';
+            const today = getTodayKey();
+            const data = JSON.parse(localStorage.getItem(key) || '{}');
+            return data[today] || 0;
+        }
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 
