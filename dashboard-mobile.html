@@ -1126,11 +1126,15 @@
                                     <option value="GBP">GBP (£)</option>
                                 </select>
                             </div>
-                            <div class="form-group" style="display:flex; align-items:center; gap:1rem;">
-                                <label for="autoRefreshToggle" style="font-weight:600;">Automatic Data Refresh</label>
-                                <input type="checkbox" id="autoRefreshToggle" checked />
-                                <span id="autoRefreshLabel"
-                                    style="color:var(--text-secondary); font-size:0.95rem;">(Recommended)</span>
+                            <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem;">
+                                <div>
+                                    <div style="font-weight:600;">Automatic Data Refresh</div>
+                                    <div style="font-size:0.9rem; color:var(--text-secondary);">Enable to refresh product data automatically</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="autoRefreshToggle" style="display:none;">
+                                    <span class="slider"></span>
+                                </label>
                             </div>
                             <div style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border);">
                                 <button class="btn btn-outline"
