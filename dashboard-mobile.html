@@ -562,6 +562,7 @@
             transition: background 0.2s;
             cursor: pointer;
         }
+
         .slider::before {
             content: '';
             position: absolute;
@@ -572,12 +573,14 @@
             background: white;
             border-radius: 50%;
             transition: left 0.2s;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
         }
-        .switch input:checked + .slider {
+
+        .switch input:checked+.slider {
             background: var(--primary);
         }
-        .switch input:checked + .slider::before {
+
+        .switch input:checked+.slider::before {
             left: 23px;
         }
 
@@ -1147,7 +1150,8 @@
                             <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem;">
                                 <div>
                                     <div style="font-weight:600;">Automatic Data Refresh</div>
-                                    <div style="font-size:0.9rem; color:var(--text-secondary);">Enable to refresh product data automatically</div>
+                                    <div style="font-size:0.9rem; color:var(--text-secondary);">Enable to refresh
+                                        product data automatically</div>
                                 </div>
                                 <label class="switch">
                                     <input type="checkbox" id="autoRefreshToggle" style="display:none;">
@@ -1231,26 +1235,10 @@
 
     <script>
 
+        //     if (/Windows|Mac|Linux/i.test(navigator.userAgent)) {
+        //   window.location.href = "dashboard.html";
+        // }
         // Add limit helpers (match desktop dashboard)
-        function getTodayKey() {
-            const d = new Date();
-            return d.toISOString().slice(0, 10);
-        }
-        function getAddLimitByTier(tier) {
-            if (!tier || tier === 'free' || tier === 'trial' || tier === 'starter') return 10;
-            if (tier === 'professional') return 100;
-            if (tier === 'enterprise') return 300;
-            return 10;
-        }
-        function getAddCountToday() {
-            const key = 'tracklet_add_count';
-            const today = getTodayKey();
-            const data = JSON.parse(localStorage.getItem(key) || '{}');
-            return data[today] || 0;
-        }
-
-        // --- ORIGINAL JS LOGIC PRESERVED --- 
-
         function doFullRefresh() {
             const dashBtn = document.getElementById('refreshDashboardBtn');
             if (dashBtn && dashBtn.classList.contains('refresh-disabled')) return;
@@ -1303,13 +1291,10 @@
         const themeToggle = document.getElementById('themeToggle');
         let chartInstance = null;
 
-        // Mobile Toggle Logic (Preserved but hidden via CSS)
-        if (mobileToggle) {
-            mobileToggle.addEventListener('click', () => {
-                sidebar.classList.toggle('open');
-                document.body.classList.toggle('sidebar-open');
-            });
-        }
+        mobileToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            document.body.classList.toggle('sidebar-open');
+        });
 
         async function fetchWithTimeout(url, options = {}, timeout = FETCH_TIMEOUT_MS) {
             return await Promise.race([
@@ -1317,6 +1302,15 @@
                 new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeout))
             ]);
         }
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768 &&
+                !sidebar.contains(e.target) &&
+                !mobileToggle.contains(e.target) &&
+                sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+                document.body.classList.remove('sidebar-open');
+            }
+        });
 
         function initTheme() {
             const saved = localStorage.getItem('theme') || 'light';
@@ -1400,10 +1394,10 @@
                     }
                     updateAnalyticsView();
                 } else {
-                    // window.location.href = PROJECT_BASE + '/login.html';
+                    window.location.href = PROJECT_BASE + '/login.html';
                 }
             } catch (e) {
-                // window.location.href = PROJECT_BASE + '/login.html';
+                window.location.href = PROJECT_BASE + '/login.html';
             }
 
             // loadSettings() removed: settings are now loaded via fetchUserSettings/renderSettingsUI
@@ -1430,7 +1424,13 @@
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.getElementById(`view-${tabName}`).classList.add('active');
 
-            const titles = { 'dashboard': 'Overview', 'tracking': 'Tracked Items', 'analytics': 'Analytics', 'settings': 'Settings' };
+
+            const titles = {
+                'dashboard': 'Overview',
+                'tracking': 'Tracked Items',
+                'analytics': 'Analytics',
+                'settings': 'Settings'
+            };
             document.getElementById('pageTitle').textContent = titles[tabName];
         }
 
@@ -1443,10 +1443,16 @@
         let cachedItems = [];
 
         function getHistoryStore() {
-            try { return JSON.parse(localStorage.getItem(STORAGE_KEY_HISTORY)) || {}; } catch (_) { return {}; }
+            try {
+                return JSON.parse(localStorage.getItem(STORAGE_KEY_HISTORY)) || {};
+            } catch (_) {
+                return {};
+            }
         }
         function saveHistoryStore(store) {
-            try { localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(store)); } catch (_) { }
+            try {
+                localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(store));
+            } catch (_) { }
         }
 
         function initChartControls() {
@@ -1527,59 +1533,59 @@
         }
 
         // ...existing code...
-                async function renderItems() {
-                        const items = await getItems();
-                        const tbody = document.getElementById('itemsTableBody');
-                        const mobileList = document.getElementById('itemsMobileList');
-                        const emptyState = document.getElementById('emptyState');
-                        const tableContainer = document.querySelector('.desktop-table');
+        async function renderItems() {
+            const items = await getItems();
+            const tbody = document.getElementById('itemsTableBody');
+            const mobileList = document.getElementById('itemsMobileList');
+            const emptyState = document.getElementById('emptyState');
+            const tableContainer = document.querySelector('.desktop-table');
 
-                        tbody.innerHTML = '';
-                        mobileList.innerHTML = '';
+            tbody.innerHTML = '';
+            mobileList.innerHTML = '';
 
-                        if (items.length === 0) {
-                                emptyState.style.display = 'block';
-                                tableContainer.style.display = 'none';
-                                mobileList.style.display = 'none';
-                        } else {
-                                emptyState.style.display = 'none';
-                                if (window.innerWidth > 768) tableContainer.style.display = 'block';
-                                mobileList.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
+            if (items.length === 0) {
+                emptyState.style.display = 'block';
+                tableContainer.style.display = 'none';
+                mobileList.style.display = 'none';
+            } else {
+                emptyState.style.display = 'none';
+                if (window.innerWidth > 768) tableContainer.style.display = 'block';
+                mobileList.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
 
-                                items.forEach((item, index) => {
-                                        let domain = 'Unknown';
-                                        try { domain = new URL(item.url).hostname.replace('www.', ''); } catch (e) { }
+                items.forEach((item, index) => {
+                    let domain = 'Unknown';
+                    try { domain = new URL(item.url).hostname.replace('www.', ''); } catch (e) { }
 
-                                        const currency = item.currency || 'USD';
-                                        const currencySymbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : currency + ' ';
-                                        const currentPrice = item.currentPrice || item.current_price;
+                    const currency = item.currency || 'USD';
+                    const currencySymbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : currency + ' ';
+                    const currentPrice = item.currentPrice || item.current_price;
 
-                                        let priceDisplay;
-                                        if (currentPrice !== null && currentPrice !== undefined && currentPrice !== '') {
-                                                const priceValue = parseFloat(currentPrice);
-                                                if (!isNaN(priceValue)) {
-                                                        priceDisplay = '<strong style="color:var(--success);">' + currencySymbol + priceValue.toFixed(2) + '</strong>';
-                                                } else { priceDisplay = '<span style="color:var(--text-secondary);">-</span>'; }
-                                        } else { priceDisplay = '<span style="color:var(--text-secondary);">-</span>'; }
+                    let priceDisplay;
+                    if (currentPrice !== null && currentPrice !== undefined && currentPrice !== '') {
+                        const priceValue = parseFloat(currentPrice);
+                        if (!isNaN(priceValue)) {
+                            priceDisplay = '<strong style="color:var(--success);">' + currencySymbol + priceValue.toFixed(2) + '</strong>';
+                        } else { priceDisplay = '<span style="color:var(--text-secondary);">-</span>'; }
+                    } else { priceDisplay = '<span style="color:var(--text-secondary);">-</span>'; }
 
-                                        const lastCheckedTime = item.lastChecked || item.last_checked;
-                                        const lastChecked = lastCheckedTime ? new Date(lastCheckedTime).toLocaleDateString() : 'Never';
-                                        const alertEnabled = item.alertEnabled !== undefined ? item.alertEnabled : item.alert_enabled;
+                    const lastCheckedTime = item.lastChecked || item.last_checked;
+                    const lastChecked = lastCheckedTime ? new Date(lastCheckedTime).toLocaleDateString() : 'Never';
+                    const alertEnabled = item.alertEnabled !== undefined ? item.alertEnabled : item.alert_enabled;
 
-                                        const alertStatus = alertEnabled
-                                                ? `<span class="status-badge status-active"><span class="status-dot"></span> Alert Active</span>`
-                                                : `<span class="status-badge" style="background:var(--gray-100); color:var(--text-secondary);">No Alert</span>`;
+                    const alertStatus = alertEnabled
+                        ? `<span class="status-badge status-active"><span class="status-dot"></span> Alert Active</span>`
+                        : `<span class="status-badge" style="background:var(--gray-100); color:var(--text-secondary);">No Alert</span>`;
 
-                                        const imageUrl = item.imageUrl || item.image_url;
-                                        const imageHtml = imageUrl
-                                                ? `<img src="${imageUrl}" alt="${item.name}" style="width:40px; height:40px; object-fit:cover; border-radius:8px; margin-right:0.75rem;">`
-                                                : `<div style="width:40px; height:40px; background:var(--gray-200); border-radius:8px; margin-right:0.75rem; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">📦</div>`;
+                    const imageUrl = item.imageUrl || item.image_url;
+                    const imageHtml = imageUrl
+                        ? `<img src="${imageUrl}" alt="${item.name}" style="width:40px; height:40px; object-fit:cover; border-radius:8px; margin-right:0.75rem;">`
+                        : `<div style="width:40px; height:40px; background:var(--gray-200); border-radius:8px; margin-right:0.75rem; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">📦</div>`;
 
-                                        // Desktop Row
-                                        const tr = document.createElement('tr');
-                                        tr.className = 'item-row';
-                                        tr.style.cursor = 'pointer';
-                                        tr.innerHTML = `
+                    // Desktop Row
+                    const tr = document.createElement('tr');
+                    tr.className = 'item-row';
+                    tr.style.cursor = 'pointer';
+                    tr.innerHTML = `
                         <td>
                             <div style="display:flex; align-items:center;">
                                 ${imageHtml}
@@ -1601,17 +1607,17 @@
                             <button class="btn-icon" onclick="event.stopPropagation(); deleteItem('${item.id !== undefined ? item.id : index}')" title="Delete" style="color:var(--danger);"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
                         </td>
                     `;
-                                        tr.addEventListener('click', () => viewProductDetails(item.id || index));
-                                        tbody.appendChild(tr);
+                    tr.addEventListener('click', () => viewProductDetails(item.id || index));
+                    tbody.appendChild(tr);
 
-                                        // Mobile Card (Updated for Banger Look)
-                                        const mCard = document.createElement('div');
-                                        mCard.className = 'mobile-item';
-                                        mCard.onclick = () => viewProductDetails(item.id || index);
+                    // Mobile Card (Updated for Banger Look)
+                    const mCard = document.createElement('div');
+                    mCard.className = 'mobile-item';
+                    mCard.onclick = () => viewProductDetails(item.id || index);
 
-                                        // Add item-level refresh button for mobile, with id for targeting
-                                        const refreshBtnId = `refreshBtn-${item.id || index}`;
-                                        mCard.innerHTML = `
+                    // Add item-level refresh button for mobile, with id for targeting
+                    const refreshBtnId = `refreshBtn-${item.id || index}`;
+                    mCard.innerHTML = `
                         <div style="flex-shrink:0;">
                                 ${imageUrl ? `<img src="${imageUrl}" style="width:60px; height:60px; object-fit:cover; border-radius:12px;">` : `<div style="width:60px; height:60px; background:var(--gray-200); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.5rem;">📦</div>`}
                         </div>
@@ -1626,11 +1632,11 @@
                         <button id="${refreshBtnId}" class="btn-icon" title="Refresh" style="position:absolute; top:10px; right:10px; color:var(--primary); font-size:1.2rem; background:white; border:1px solid var(--border); border-radius:50%; box-shadow:0 2px 8px rgba(0,0,0,0.07);" onclick="event.stopPropagation(); refreshAndViewProduct('${item.id !== undefined ? item.id : index}');">🔄️</button>
                         <button class="btn-icon" onclick="deleteItem('${item.id !== undefined ? item.id : index}')" title="Delete" style="position:absolute; top:10px; right:50px; color:var(--danger); font-size:1.2rem; background:white; border:1px solid var(--border); border-radius:50%; box-shadow:0 2px 8px rgba(0,0,0,0.07);">🗑️</button>
                     `;
-                                        mobileList.appendChild(mCard);
-                                });
-                        }
-                        updateStats();
-                }
+                    mobileList.appendChild(mCard);
+                });
+            }
+            updateStats();
+        }
 
         document.getElementById('addItemBtn').addEventListener('click', async () => {
             const urlIn = document.getElementById('newItemUrl');
@@ -1779,75 +1785,6 @@
             }
         };
 
-        async function updateStats() {
-            const items = await getItems();
-            document.getElementById('statTotal').textContent = items.length;
-            let recentChanges = 0;
-            const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-            items.forEach(item => {
-                const lastChecked = item.lastChecked || item.last_checked;
-                if (lastChecked && new Date(lastChecked) > oneDayAgo) { recentChanges++; }
-            });
-            document.getElementById('statChanges').textContent = recentChanges;
-            const changesElement = document.getElementById('statChangesTrend');
-            if (recentChanges > 0) {
-                changesElement.textContent = `${recentChanges} updated`;
-                changesElement.style.color = 'var(--primary)';
-            }
-
-            // Refresh Timer Logic
-            if (window.nextRefreshTimer) clearInterval(window.nextRefreshTimer);
-            const refreshEl = document.getElementById('statNextRefresh');
-            let intervalMs = 6 * 60 * 60 * 1000;
-            let soonest = null;
-            (Array.isArray(cachedItems) ? cachedItems : []).forEach(item => {
-                const last = item.lastChecked || item.last_checked;
-                if (last) {
-                    const next = new Date(new Date(last).getTime() + intervalMs);
-                    if (!soonest || next < soonest) soonest = next;
-                } else { soonest = new Date(); }
-            });
-            function updateCountdown() {
-                const now = new Date();
-                let diff = soonest ? soonest - now : 0;
-                if (diff <= 0) { if (refreshEl) refreshEl.textContent = 'Ready'; }
-                else {
-                    const hours = Math.floor(diff / 3600000);
-                    const min = Math.floor((diff % 3600000) / 60000);
-                    if (hours > 0) refreshEl.textContent = `${hours}h ${min}m`;
-                    else refreshEl.textContent = `${min} mins`;
-                }
-            }
-            updateCountdown();
-            window.nextRefreshTimer = setInterval(updateCountdown, 60000);
-        }
-
-
-        // ========== BACKEND SETTINGS MIGRATION ========== //
-        async function fetchUserSettings() {
-            try {
-                const res = await fetch(API_URL + '/api/settings', { credentials: 'include' });
-                const data = await res.json();
-                if (data.success) {
-                    window.userSettings = data.settings;
-                    return data.settings;
-                }
-                throw new Error('Failed to fetch user settings');
-            } catch (e) {
-                window.userSettings = { notifications_enabled: false, currency: 'USD', auto_refresh_enabled: true };
-                return window.userSettings;
-            }
-        }
-
-        function renderSettingsUI() {
-            const s = window.userSettings || { notifications_enabled: false, currency: 'USD', auto_refresh_enabled: true };
-            document.getElementById('notificationsToggle').checked = s.notifications_enabled;
-            document.getElementById('currency').value = s.currency;
-            document.getElementById('autoRefreshToggle').checked = s.auto_refresh_enabled !== false;
-            setupBrowserNotifications();
-            applyAutoRefreshSetting();
-        }
-
         async function saveUserSettings() {
             const body = {
                 notifications_enabled: document.getElementById('notificationsToggle').checked,
@@ -1873,25 +1810,12 @@
                 showToast('Failed to save settings', 'error');
             }
         }
-
-        // On load, fetch settings from backend and render UI
-        document.addEventListener('DOMContentLoaded', async function () {
-            try {
-                await fetchUserSettings();
-                renderSettingsUI();
-            } catch (e) {
-                showToast('Failed to load user settings', 'error');
-            }
-        });
-
         document.getElementById('saveSettingsBtn').addEventListener('click', saveUserSettings);
+        let notificationPollInterval = null;
 
-        document.getElementById('currency').addEventListener('change', function () { document.getElementById('saveSettingsBtn').click(); });
-
-        document.getElementById('autoRefreshToggle').addEventListener('change', () => {
-            saveUserSettings();
-        });
-
+        // TODO: USE_BACKEND_SETTINGS
+        // ========== AUTO-REFRESH LOGIC (BACKEND SETTINGS) ========== //
+        let autoRefreshInterval = null;
         function applyAutoRefreshSetting() {
             const s = window.userSettings || { auto_refresh_enabled: true };
             const autoRefresh = s.auto_refresh_enabled !== false; // default true
@@ -1915,29 +1839,143 @@
             }
         }
 
-        // ========== END BACKEND SETTINGS MIGRATION ========== //
+        function setupAutoRefresh() {
+            clearAutoRefresh();
+            // Check every 30 seconds if "Next Sync" is "Ready"
+            autoRefreshInterval = setInterval(() => {
+                const refreshEl = document.getElementById('statNextRefresh');
+                if (refreshEl && refreshEl.textContent.trim().toLowerCase() === 'ready') {
+                    doFullRefresh();
+                }
+            }, 30000);
+        }
+
+        function clearAutoRefresh() {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            autoRefreshInterval = null;
+        }
+        // ========== END AUTO-REFRESH LOGIC ========== //
 
 
-        let notificationPollInterval = null;
+        // TODO: FETCH_USER_SETTINGS
+        async function fetchUserSettings() {
+            try {
+                const res = await fetch(API_URL + '/api/settings', { credentials: 'include' });
+                const data = await res.json();
+                if (data.success) {
+                    window.userSettings = data.settings;
+                    return data.settings;
+                }
+                throw new Error('Failed to fetch user settings');
+            } catch (e) {
+                window.userSettings = { notifications_enabled: false, currency: 'USD', auto_refresh_enabled: true };
+                return window.userSettings;
+            }
+        }
+
+        // TODO: REMOVE_LOCALSTORAGE_SETTINGS
+        // All localStorage usage for settings has been removed in favor of backend settings.
+
+        // TODO: TEST_SETTINGS_PERSISTENCE
+        document.addEventListener('DOMContentLoaded', async function () {
+            try {
+                await fetchUserSettings();
+                renderSettingsUI();
+                // ...other init logic as needed
+            } catch (e) {
+                showToast('Failed to load user settings', 'error');
+            }
+        });
         function setupBrowserNotifications() {
             const toggle = document.getElementById('notificationsToggle');
             if (!toggle) return;
+
             toggle.addEventListener('change', () => {
-                saveUserSettings();
-                if (toggle.checked) requestNotificationPermission();
+                const enabled = toggle.checked;
+                const s = JSON.parse(localStorage.getItem(STORAGE_KEY_SETTINGS)) || {};
+                s.notifications = enabled;
+                localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(s));
+                if (enabled) {
+                    requestNotificationPermission();
+                    startNotificationPolling();
+                } else {
+                    stopNotificationPolling();
+                }
             });
-            if (toggle.checked) requestNotificationPermission();
+
+            if (toggle.checked) {
+                requestNotificationPermission();
+                startNotificationPolling();
+            } else {
+                stopNotificationPolling();
+            }
         }
-        function requestNotificationPermission() { if (window.Notification && Notification.permission === 'default') Notification.requestPermission(); }
 
+        function requestNotificationPermission() {
+            if (window.Notification && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
 
+        function startNotificationPolling() {
+            stopNotificationPolling();
+            fetchAndShowNotifications();
+            notificationPollInterval = setInterval(fetchAndShowNotifications, 60000);
+        }
+
+        function stopNotificationPolling() {
+            if (notificationPollInterval) clearInterval(notificationPollInterval);
+            notificationPollInterval = null;
+        }
+
+        async function fetchAndShowNotifications() {
+            if (!window.Notification || Notification.permission !== 'granted') return;
+            try {
+                const res = await fetch(API_URL + '/alerts/unread', { credentials: 'include' });
+                if (!res.ok) return;
+                const data = await res.json();
+                if (!data.success || !Array.isArray(data.notifications)) return;
+                data.notifications.forEach(showBrowserNotification);
+            } catch (e) { }
+        }
+
+        function showBrowserNotification(alert) {
+            const title = alert.productName ? `Price Alert: ${alert.productName}` : 'Price Alert';
+            const body = alert.oldPrice && alert.newPrice
+                ? `Price changed from ${alert.oldPrice} to ${alert.newPrice} ${alert.currency || ''}`
+                : 'A tracked product has a new price.';
+            const url = alert.productUrl || undefined;
+            const n = new Notification(title, {
+                body,
+                icon: '/favicon-32x32.png',
+                data: { url }
+            });
+            n.onclick = function (e) {
+                if (url) window.open(url, '_blank');
+                n.close();
+            };
+        }
+
+        document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+            const s = {
+                notifications: document.getElementById('notificationsToggle').checked,
+                currency: document.getElementById('currency').value
+            };
+            localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(s));
+            showToast('Settings saved successfully');
+        });
 
         function showToast(msg, type = 'success') {
             const toast = document.getElementById('toast');
             const txt = document.getElementById('toastMsg');
             txt.textContent = msg;
-            if (type === 'error') { toast.style.borderLeftColor = 'var(--danger)'; }
-            else { toast.style.borderLeftColor = 'var(--success)'; }
+
+            if (type === 'error') {
+                toast.style.borderLeftColor = 'var(--danger)';
+            } else {
+                toast.style.borderLeftColor = 'var(--success)';
+            }
+
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
