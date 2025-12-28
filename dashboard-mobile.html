@@ -1250,6 +1250,12 @@
             // Check if auto-refresh is enabled (from backend settings)
             const autoRefresh = window.userSettings && window.userSettings.auto_refresh_enabled !== false;
             if (autoRefresh) {
+                showToast('Refreshing all products...');
+                if (loading) {
+                    loading.style.opacity = '1';
+                    loading.style.display = 'flex';
+                }
+                // POST to refresh-all and get jobId
                 fetch(API_URL + '/api/products/refresh-all', {
                     method: 'POST',
                     credentials: 'include',
@@ -1257,13 +1263,72 @@
                 })
                 .then(res => res.json())
                 .then(data => {
-                    showToast('All products refreshed!');
-                    renderItems().then(() => {
-                        updateStats();
-                        if (loading) {
-                            setTimeout(() => { loading.style.opacity = '0'; setTimeout(() => loading.style.display = 'none', 300); }, 500);
+                    const jobId = data.jobId;
+                    if (!jobId) throw new Error('No jobId returned');
+                    // Open WebSocket for job status
+                    let ws;
+                    let wsUrl = API_URL.replace(/^http/, 'ws') + `/ws?userId=${currentUser && (currentUser.id || currentUser.userId || currentUser._id)}`;
+                    try {
+                        ws = new WebSocket(wsUrl);
+                    } catch (e) { ws = null; }
+                    let polling = false;
+                    let pollInterval = null;
+                    let jobDone = false;
+                    function finishRefresh(success, errorMsg) {
+                        if (jobDone) return;
+                        jobDone = true;
+                        if (ws) ws.close();
+                        if (pollInterval) clearInterval(pollInterval);
+                        if (success) {
+                            showToast('All products refreshed!');
+                            renderItems().then(() => {
+                                updateStats();
+                                if (loading) {
+                                    setTimeout(() => { loading.style.opacity = '0'; setTimeout(() => loading.style.display = 'none', 300); }, 500);
+                                }
+                            });
+                        } else {
+                            showToast(errorMsg || 'Refresh failed.', 'error');
+                            fallbackLocalRefresh();
                         }
-                    });
+                    }
+                    if (ws) {
+                        ws.onmessage = (event) => {
+                            try {
+                                const msg = JSON.parse(event.data);
+                                if (msg.type === 'refresh-complete' && msg.jobId === jobId) {
+                                    finishRefresh(true);
+                                } else if (msg.type === 'refresh-error' && msg.jobId === jobId) {
+                                    finishRefresh(false, msg.error || 'Refresh error');
+                                }
+                            } catch (e) {}
+                        };
+                        ws.onerror = () => {
+                            // Fallback to polling
+                            if (!polling) {
+                                polling = true;
+                                pollInterval = setInterval(() => {
+                                    fetch(`${API_URL}/api/products/refresh-status/${jobId}`, { credentials: 'include' })
+                                        .then(r => r.json())
+                                        .then(status => {
+                                            if (status.status === 'done') finishRefresh(true);
+                                            else if (status.status === 'error') finishRefresh(false, status.error);
+                                        });
+                                }, 3000);
+                            }
+                        };
+                    } else {
+                        // No WS, fallback to polling
+                        polling = true;
+                        pollInterval = setInterval(() => {
+                            fetch(`${API_URL}/api/products/refresh-status/${jobId}`, { credentials: 'include' })
+                                .then(r => r.json())
+                                .then(status => {
+                                    if (status.status === 'done') finishRefresh(true);
+                                    else if (status.status === 'error') finishRefresh(false, status.error);
+                                });
+                        }, 3000);
+                    }
                 })
                 .catch(() => {
                     showToast('Backend refresh failed. Falling back to local refresh.', 'error');
