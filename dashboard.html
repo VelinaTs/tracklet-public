@@ -973,6 +973,13 @@
         loading.style.display = 'flex';
       }
       renderItems().then(() => {
+        // After manual refresh, update all items' lastChecked to now so next refresh is in the future
+        const now = new Date().toISOString();
+        if (Array.isArray(cachedItems)) {
+          cachedItems.forEach(item => {
+            item.lastChecked = now;
+          });
+        }
         updateStats();
         if (loading) {
           setTimeout(() => { loading.style.opacity = '0'; setTimeout(() => loading.style.display = 'none', 300); }, 500);

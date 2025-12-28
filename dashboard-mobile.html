@@ -1252,13 +1252,21 @@
                     setTimeout(() => { loading.style.opacity = '0'; setTimeout(() => loading.style.display = 'none', 300); }, 500);
                 }
             });
+            // Also update the next data refresh immediately after manual refresh
+            updateStats();
         }
 
         document.addEventListener('DOMContentLoaded', function () {
             const dashBtn = document.getElementById('refreshDashboardBtn');
-            if (dashBtn) dashBtn.onclick = doFullRefresh;
+            if (dashBtn) dashBtn.onclick = function() {
+                doFullRefresh();
+                updateStats(); // Ensure next refresh time is recalculated after manual refresh
+            };
             const trackBtn = document.getElementById('refreshTrackingBtn');
-            if (trackBtn) trackBtn.onclick = doFullRefresh;
+            if (trackBtn) trackBtn.onclick = function() {
+                doFullRefresh();
+                updateStats();
+            };
         });
 
         const API_URL = 'https://price-monitor-backend-production-e326.up.railway.app';
@@ -1373,18 +1381,20 @@
 
                     // ... (Trial logic preserved) ...
                     const trialInfo = document.getElementById('trialInfo');
-                    if (tier === 'trial' && user.trialEndsAt) {
-                        const trialEnds = new Date(user.trialEndsAt);
-                        const daysLeft = Math.ceil((trialEnds - Date.now()) / (1000 * 60 * 60 * 24));
-                        if (daysLeft > 0) {
-                            trialInfo.textContent = 'Trial ends in ' + daysLeft + ' day' + (daysLeft === 1 ? '' : 's');
-                            trialInfo.style.display = 'block';
+                    if (trialInfo) {
+                        if (tier === 'trial' && user.trialEndsAt) {
+                            const trialEnds = new Date(user.trialEndsAt);
+                            const daysLeft = Math.ceil((trialEnds - Date.now()) / (1000 * 60 * 60 * 24));
+                            if (daysLeft > 0) {
+                                trialInfo.textContent = 'Trial ends in ' + daysLeft + ' day' + (daysLeft === 1 ? '' : 's');
+                                trialInfo.style.display = 'block';
+                            } else {
+                                trialInfo.textContent = 'Trial expired';
+                                trialInfo.style.display = 'block';
+                            }
                         } else {
-                            trialInfo.textContent = 'Trial expired';
-                            trialInfo.style.display = 'block';
+                            trialInfo.style.display = 'none';
                         }
-                    } else {
-                        trialInfo.style.display = 'none';
                     }
 
                     const upgradeBanner = document.getElementById('upgradeBanner');
