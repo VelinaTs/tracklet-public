@@ -972,19 +972,46 @@
         loading.style.opacity = '1';
         loading.style.display = 'flex';
       }
-      renderItems().then(() => {
-        // After manual refresh, update all items' lastChecked to now so next refresh is in the future
-        const now = new Date().toISOString();
-        if (Array.isArray(cachedItems)) {
-          cachedItems.forEach(item => {
-            item.lastChecked = now;
+      // Check if auto-refresh is enabled (from backend settings)
+      const autoRefresh = window.userSettings && window.userSettings.auto_refresh_enabled !== false;
+      if (autoRefresh) {
+        fetch(API_URL + '/api/products/refresh-all', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' }
+        })
+        .then(res => res.json())
+        .then(data => {
+          showToast('All products refreshed!');
+          renderItems().then(() => {
+            updateStats();
+            if (loading) {
+              setTimeout(() => { loading.style.opacity = '0'; setTimeout(() => loading.style.display = 'none', 300); }, 500);
+            }
           });
-        }
-        updateStats();
-        if (loading) {
-          setTimeout(() => { loading.style.opacity = '0'; setTimeout(() => loading.style.display = 'none', 300); }, 500);
-        }
-      });
+        })
+        .catch(() => {
+          showToast('Backend refresh failed. Falling back to local refresh.', 'error');
+          fallbackLocalRefresh();
+        });
+      } else {
+        fallbackLocalRefresh();
+      }
+      function fallbackLocalRefresh() {
+        renderItems().then(() => {
+          // After manual refresh, update all items' lastChecked to now so next refresh is in the future
+          const now = new Date().toISOString();
+          if (Array.isArray(cachedItems)) {
+            cachedItems.forEach(item => {
+              item.lastChecked = now;
+            });
+          }
+          updateStats();
+          if (loading) {
+            setTimeout(() => { loading.style.opacity = '0'; setTimeout(() => loading.style.display = 'none', 300); }, 500);
+          }
+        });
+      }
     }
 
     document.addEventListener('DOMContentLoaded', function () {
